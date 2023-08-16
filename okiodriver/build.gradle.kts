@@ -14,6 +14,17 @@ kotlin {
             useJUnitPlatform()
         }
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+        macosX64(),
+        macosArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = "rpccore-okiodriver"
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
