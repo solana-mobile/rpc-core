@@ -22,7 +22,7 @@ open class JsonRpcRequest (
 @Serializable
 open class JsonRpc20Request (
     override val method: String,
-    override val params: JsonElement?,
+    override val params: JsonElement? = null,
     override val id: String,
 ) : RpcRequest {
     override val jsonrpc: String = "2.0"
