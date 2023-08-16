@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.9.0"
+    id("com.vanniktech.maven.publish")
 }
 
 group = "io.github.funkatronics"
@@ -51,4 +52,8 @@ kotlin {
 //        val nativeMain by getting
 //        val nativeTest by getting
     }
+}
+
+mavenPublishing {
+    coordinates("io.github.funkatronics", "rpccore", "0.1.0-SNAPSHOT")
 }
