@@ -25,6 +25,8 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0-RC")
             }
         }
         val jvmMain by getting
