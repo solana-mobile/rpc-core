@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("com.vanniktech.maven.publish")
 }
 
 group = "io.github.funkatronics"
@@ -32,4 +33,8 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
     }
+}
+
+mavenPublishing {
+    coordinates("io.github.funkatronics", "rpccore-okiodriver", "0.1.0-SNAPSHOT")
 }
