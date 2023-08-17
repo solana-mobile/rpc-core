@@ -4,7 +4,7 @@ import com.funkatronics.networking.Rpc20Driver
 import com.funkatronics.util.MockHttpDriver
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonElement
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
