@@ -14,17 +14,6 @@ kotlin {
             useJUnitPlatform()
         }
     }
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-        macosX64(),
-        macosArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = "rpccore-okiodriver"
-        }
-    }
 
     sourceSets {
         val commonMain by getting {
@@ -41,8 +30,6 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0-RC")
             }
         }
-        val jvmMain by getting
-        val jvmTest by getting
     }
 }
 
