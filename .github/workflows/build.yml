@@ -30,7 +30,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Test
-        run: ./gradlew build
+        run: ./gradlew clean build
 
       - name: Save Test Reports
         if: failure()
