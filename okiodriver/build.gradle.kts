@@ -34,5 +34,5 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates("io.github.funkatronics", "rpccore-okiodriver", "0.1.0-SNAPSHOT")
+    coordinates("io.github.funkatronics", "rpccore-okiodriver", "0.1.0")
 }
