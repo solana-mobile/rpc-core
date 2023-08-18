@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.funkatronics"
-version = "0.1.0-SNAPSHOT"
+version = "0.2.0"
 
 kotlin {
     jvm {
@@ -66,5 +66,5 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates("io.github.funkatronics", "rpccore", "0.1.0-SNAPSHOT")
+    coordinates("io.github.funkatronics", "rpccore", "0.2.0")
 }
