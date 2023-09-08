@@ -1,18 +1,14 @@
 package com.funkatronics.networking
 
 import com.funkatronics.rpccore.*
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
 class Rpc20Driver(private val url: String,
                   private val httpDriver: HttpNetworkDriver) : JsonRpcDriver {
 
-    @OptIn(ExperimentalSerializationApi::class)
     private val json = Json {
-        encodeDefaults = true
         ignoreUnknownKeys = true
-        explicitNulls = false
     }
 
     override suspend fun <R> makeRequest(request: RpcRequest, resultSerializer: KSerializer<R>): Rpc20Response<R> =
@@ -20,7 +16,7 @@ class Rpc20Driver(private val url: String,
             HttpPostRequest(
                 url = url,
                 properties = mapOf("Content-Type" to "application/json; charset=utf-8"),
-                body = json.encodeToString(RpcRequestSerializer, request)
+                body = json.encodeToString(RpcRequestPolymorphicSerializer, request)
             )
         ).run {
             try {
