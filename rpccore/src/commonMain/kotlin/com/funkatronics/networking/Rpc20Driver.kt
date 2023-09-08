@@ -8,7 +8,6 @@ class Rpc20Driver(private val url: String,
                   private val httpDriver: HttpNetworkDriver) : JsonRpcDriver {
 
     private val json = Json {
-        encodeDefaults = true
         ignoreUnknownKeys = true
     }
 
@@ -17,7 +16,7 @@ class Rpc20Driver(private val url: String,
             HttpPostRequest(
                 url = url,
                 properties = mapOf("Content-Type" to "application/json; charset=utf-8"),
-                body = json.encodeToString(RpcRequest.serializer(), request)
+                body = json.encodeToString(RpcRequestPolymorphicSerializer, request)
             )
         ).run {
             try {

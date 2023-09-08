@@ -1,13 +1,15 @@
 package com.funkatronics.rpccore
 
+import com.funkatronics.networking.HttpNetworkDriver
+import com.funkatronics.networking.HttpRequest
 import com.funkatronics.networking.Rpc20Driver
 import com.funkatronics.util.MockHttpDriver
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlin.test.*
 
 class RpcDriverTest {
 
@@ -25,7 +27,6 @@ class RpcDriverTest {
         assertTrue(rpcResponse.isFailure)
         assertNotNull(rpcResponse.exceptionOrNull())
     }
-
 
     @Test
     fun testJsonRpcDriverGetReturnsRpcError() = runTest {
@@ -97,5 +98,46 @@ class RpcDriverTest {
         // then
         assertNotNull(rpcResponse.error)
         assertNull(rpcResponse.result)
+    }
+
+    @Test
+    fun testRpc20DriverCorrectlySerializesRequest() = runTest {
+        val rpcUrl = "https://api.invalid.solana.com"
+        val rpcRequest = JsonRpc20Request("getSomething", id = "1234")
+        val serializedRequest = buildJsonObject {
+            put("method", rpcRequest.method)
+            put("id", rpcRequest.id)
+            put("jsonrpc", rpcRequest.jsonrpc)
+        }.toString()
+
+        val rpcDriver = Rpc20Driver(rpcUrl, object : HttpNetworkDriver {
+            override suspend fun makeHttpRequest(request: HttpRequest): String {
+                assertEquals(serializedRequest, request.body)
+                return ""
+            }
+        })
+
+        rpcDriver.makeRequest(rpcRequest)
+    }
+
+    @Test
+    fun testRpc20DriverCorrectlySerializesNonRpc20Request() = runTest {
+        val rpcUrl = "https://api.invalid.solana.com"
+        val rpcRequest = JsonRpcRequest("getSomething", buildJsonObject { put("param", "value") },"1234", "2.0")
+        val serializedRequest = buildJsonObject {
+            put("method", rpcRequest.method)
+            put("params", rpcRequest.params!!)
+            put("id", rpcRequest.id)
+            put("jsonrpc", rpcRequest.jsonrpc)
+        }.toString()
+
+        val rpcDriver = Rpc20Driver(rpcUrl, object : HttpNetworkDriver {
+            override suspend fun makeHttpRequest(request: HttpRequest): String {
+                assertEquals(serializedRequest, request.body)
+                return ""
+            }
+        })
+
+        rpcDriver.makeRequest(rpcRequest)
     }
 }
