@@ -1,5 +1,6 @@
 package com.funkatronics.rpccore
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
@@ -26,4 +27,10 @@ open class JsonRpc20Request (
     override val id: String,
 ) : RpcRequest {
     override val jsonrpc: String = "2.0"
+}
+
+object RpcRequestSerializer : JsonContentPolymorphicSerializer<RpcRequest>(RpcRequest::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<RpcRequest> {
+        return RpcRequest.serializer()
+    }
 }
