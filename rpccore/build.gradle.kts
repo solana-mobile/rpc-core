@@ -4,8 +4,7 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-group = "io.github.funkatronics"
-version = "0.2.0"
+val artifactId: String by project
 
 kotlin {
     jvm {
@@ -66,5 +65,5 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates("io.github.funkatronics", "rpccore", "0.2.0")
+    coordinates(group as String, artifactId, version as String)
 }

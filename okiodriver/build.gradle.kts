@@ -3,8 +3,8 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-group = "io.github.funkatronics"
-version = "0.1.0"
+val baseArtifactId: String by project
+val artifactId: String = "$baseArtifactId-okiodriver"
 
 kotlin {
     jvm {
@@ -34,5 +34,5 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates("io.github.funkatronics", "rpccore-okiodriver", "0.1.0")
+    coordinates(group as String, artifactId, version as String)
 }
