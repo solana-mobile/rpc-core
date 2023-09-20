@@ -3,8 +3,8 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-val baseArtifactId: String by project
-val artifactId: String = "$baseArtifactId-okiodriver"
+val artifactId: String by project
+val moduleArtifactId = "$artifactId-okiodriver"
 
 kotlin {
     jvm {
@@ -34,5 +34,5 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates(group as String, artifactId, version as String)
+    coordinates(group as String, moduleArtifactId, version as String)
 }
