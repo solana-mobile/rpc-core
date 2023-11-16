@@ -22,7 +22,7 @@ kotlin {
         macosArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "rpccore"
+            baseName = artifactId
         }
     }
 //    js(BOTH) {
