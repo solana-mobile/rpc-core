@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RpcCore"
+rootProject.name = "Rpc Core"
 include(":rpccore")
 include(":okiodriver")
 
