@@ -3,8 +3,8 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-val artifactIdPrefix: String by project
-val moduleArtifactId = "$artifactIdPrefix-core"
+val artifactId: String by project
+val moduleArtifactId = "$artifactId-okiodriver"
 
 kotlin {
     jvm {
