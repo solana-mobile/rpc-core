@@ -1,6 +1,6 @@
-package com.funkatronics.networking
+package com.solana.networking
 
-import com.funkatronics.rpccore.*
+import com.solana.rpccore.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 

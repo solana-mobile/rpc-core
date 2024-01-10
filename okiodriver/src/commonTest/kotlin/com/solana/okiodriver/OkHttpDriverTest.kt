@@ -1,10 +1,10 @@
-package com.funkatronics.okiodriver
+package com.solana.okiodriver
 
-import com.funkatronics.networking.HttpRequest
-import com.funkatronics.networking.OkHttpNetworkDriver
-import com.funkatronics.networking.Rpc20Driver
-import com.funkatronics.rpccore.JsonRpc20Request
-import com.funkatronics.rpccore.makeRequest
+import com.solana.networking.HttpRequest
+import com.solana.networking.OkHttpNetworkDriver
+import com.solana.networking.Rpc20Driver
+import com.solana.rpccore.JsonRpc20Request
+import com.solana.rpccore.makeRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor

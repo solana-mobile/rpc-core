@@ -1,11 +1,10 @@
-package com.funkatronics.rpccore
+package com.solana.rpccore
 
-import com.funkatronics.networking.HttpNetworkDriver
-import com.funkatronics.networking.HttpRequest
-import com.funkatronics.networking.Rpc20Driver
-import com.funkatronics.util.MockHttpDriver
+import com.solana.networking.HttpNetworkDriver
+import com.solana.networking.HttpRequest
+import com.solana.networking.Rpc20Driver
+import com.solana.util.MockHttpDriver
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
