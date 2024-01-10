@@ -1,4 +1,4 @@
-package com.funkatronics.networking
+package com.solana.networking
 
 interface HttpRequest {
     val url: String

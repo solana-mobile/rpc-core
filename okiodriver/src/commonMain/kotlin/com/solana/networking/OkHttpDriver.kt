@@ -1,4 +1,4 @@
-package com.funkatronics.networking
+package com.solana.networking
 
 import okhttp3.OkHttpClient
 import okhttp3.Request

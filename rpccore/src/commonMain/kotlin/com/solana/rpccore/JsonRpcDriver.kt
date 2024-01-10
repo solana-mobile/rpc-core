@@ -1,4 +1,4 @@
-package com.funkatronics.rpccore
+package com.solana.rpccore
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
