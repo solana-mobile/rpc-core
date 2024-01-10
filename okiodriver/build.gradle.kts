@@ -4,7 +4,7 @@ plugins {
 }
 
 val artifactIdPrefix: String by project
-val moduleArtifactId = "$artifactIdPrefix-core"
+val moduleArtifactId = "$artifactIdPrefix-okiodriver"
 
 kotlin {
     jvm {
