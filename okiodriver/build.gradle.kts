@@ -20,14 +20,14 @@ kotlin {
             dependencies {
                 implementation(project(mapOf("path" to ":rpccore")))
 //                implementation("com.squareup.okhttp3:okhttp:4.10.0")
-                implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.11")
+                implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0-RC")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
             }
         }
     }
