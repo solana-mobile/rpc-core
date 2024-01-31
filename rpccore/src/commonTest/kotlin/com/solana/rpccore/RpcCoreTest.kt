@@ -5,9 +5,8 @@ import com.solana.networking.HttpRequest
 import com.solana.networking.Rpc20Driver
 import com.solana.util.MockHttpDriver
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class RpcDriverTest {
@@ -123,6 +122,35 @@ class RpcDriverTest {
     fun testRpc20DriverCorrectlySerializesNonRpc20Request() = runTest {
         val rpcUrl = "https://api.invalid.solana.com"
         val rpcRequest = JsonRpcRequest("getSomething", buildJsonObject { put("param", "value") },"1234", "2.0")
+        val serializedRequest = buildJsonObject {
+            put("method", rpcRequest.method)
+            put("params", rpcRequest.params!!)
+            put("id", rpcRequest.id)
+            put("jsonrpc", rpcRequest.jsonrpc)
+        }.toString()
+
+        val rpcDriver = Rpc20Driver(rpcUrl, object : HttpNetworkDriver {
+            override suspend fun makeHttpRequest(request: HttpRequest): String {
+                assertEquals(serializedRequest, request.body)
+                return ""
+            }
+        })
+
+        rpcDriver.makeRequest(rpcRequest)
+    }
+
+    @Test
+    fun testRpc20DriverCorrectlySerializesCustomRequest() = runTest {
+        class MyRpcRequest : JsonRpc20Request("getSomething", id = "1234",
+            params = buildJsonArray {
+                add("a string")
+                addJsonObject {
+                    put("param", "value")
+                }
+            })
+
+        val rpcUrl = "https://api.invalid.solana.com"
+        val rpcRequest = MyRpcRequest()
         val serializedRequest = buildJsonObject {
             put("method", rpcRequest.method)
             put("params", rpcRequest.params!!)
