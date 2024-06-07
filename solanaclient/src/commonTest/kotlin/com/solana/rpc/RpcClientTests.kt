@@ -66,14 +66,16 @@ class RpcClientTests {
         // given
         val keyPair = Ed25519.generateKeyPair()
         val pubkey = SolanaPublicKey(keyPair.publicKey)
-        val rpc = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+        val rpc = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver(),
+            TransactionOptions(commitment = Commitment.CONFIRMED))
         val balance = 10000000L
 
         // when
         val airdropResponse = rpc.requestAirdrop(pubkey, 0.01f)
 
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            rpc.confirmTransaction(airdropResponse.result!!)
+            rpc.confirmTransaction(airdropResponse.result!!,
+                TransactionOptions(commitment = Commitment.CONFIRMED))
         }
 
         val response = rpc.getBalance(pubkey)
