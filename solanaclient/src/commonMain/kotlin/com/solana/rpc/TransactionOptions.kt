@@ -21,10 +21,7 @@ enum class Commitment(val value: String) {
     CONFIRMED("confirmed"),
 
     @SerialName("finalized")
-    FINALIZED("finalized"),
-
-    @SerialName("max")
-    MAX("max");
+    FINALIZED("finalized");
 
     override fun toString(): String {
         return value
