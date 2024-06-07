@@ -20,8 +20,8 @@ class KtorDriverTest {
     @Test
     fun testKtorNetworkDriverPostRequest() = runTest {
         // given
-        val KtorClient = buildMockJsonHttpClient("{}")
-        val driver = KtorNetworkDriver(KtorClient)
+        val ktorClient = buildMockJsonHttpClient("{}")
+        val driver = KtorNetworkDriver(ktorClient)
         val request = object : HttpRequest {
             override val url = "https:///someendpoint.com/post"
             override val method = "POST"
@@ -42,8 +42,8 @@ class KtorDriverTest {
     @Test
     fun testKtorNetworkDriverGetRequest() = runTest {
         // given
-        val KtorClient = buildMockJsonHttpClient("{}")
-        val driver = KtorNetworkDriver(KtorClient)
+        val ktorClient = buildMockJsonHttpClient("{}")
+        val driver = KtorNetworkDriver(ktorClient)
         val request = object : HttpRequest {
             override val url = "https:///someendpoint.com/get"
             override val method = "GET"
@@ -77,8 +77,8 @@ class KtorDriverTest {
             }
         """.trimIndent()
 
-        val KtorClient = buildMockJsonHttpClient(mockedResponse)
-        val httpDriver = KtorNetworkDriver(KtorClient)
+        val ktorClient = buildMockJsonHttpClient(mockedResponse)
+        val httpDriver = KtorNetworkDriver(ktorClient)
         val rpcDriver = Rpc20Driver(rpcUrl, httpDriver)
 
         data class Result(val number: Int, val value: String)
@@ -117,8 +117,8 @@ class KtorDriverTest {
             }
         """.trimIndent()
 
-        val KtorClient = buildMockJsonHttpClient(mockedResponse)
-        val httpDriver = KtorNetworkDriver(KtorClient)
+        val ktorClient = buildMockJsonHttpClient(mockedResponse)
+        val httpDriver = KtorNetworkDriver(ktorClient)
         val rpcDriver = Rpc20Driver(rpcUrl, httpDriver)
 
         // when
