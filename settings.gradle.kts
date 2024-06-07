@@ -17,4 +17,5 @@ dependencyResolutionManagement {
 rootProject.name = "Rpc Core"
 include(":rpccore")
 include(":okiodriver")
+include(":ktordriver")
 
