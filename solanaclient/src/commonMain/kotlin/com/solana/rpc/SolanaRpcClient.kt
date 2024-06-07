@@ -69,14 +69,14 @@ class SolanaRpcClient(
 
     suspend fun sendTransaction(
         transaction: Transaction,
-        skipPreflight: Boolean = false,
+        options: TransactionOptions = defaultTransactionOptions,
         requestId: String? = null
-    ) = makeRequest(SendTransactionRequest(transaction, skipPreflight, requestId), String.serializer())
+    ) = makeRequest(SendTransactionRequest(transaction, options, requestId), String.serializer())
 
     suspend fun sendAndConfirmTransaction(
         transaction: Transaction,
         options: TransactionOptions = defaultTransactionOptions
-    ) = sendTransaction(transaction).apply {
+    ) = sendTransaction(transaction, options).apply {
         result?.let { confirmTransaction(it, options) }
     }
 
@@ -181,14 +181,16 @@ class SolanaRpcClient(
 
     class SendTransactionRequest(
         transaction: Transaction,
-        skipPreflight: Boolean = false,
+        options: TransactionOptions,
         requestId: String? = null
     ) : SolanaRpcRequest(
             method = "sendTransaction",
             params = buildJsonArray {
                 add(Base58.encodeToString(transaction.serialize()))
                 addJsonObject {
-                    put("skipPreflight", skipPreflight)
+                    put("encoding", options.encoding.getEncoding())
+                    put("skipPreflight", options.skipPreflight)
+                    put("preflightCommitment", options.preflightCommitment.value)
                 }
             },
             requestId
