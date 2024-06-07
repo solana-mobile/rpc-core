@@ -87,7 +87,7 @@ class RpcClientTests {
     }
 
     @Test
-    fun `sendTransaction returns transaction signature`() = runTest {
+    fun `sendTransaction with base58 encoding returns transaction signature`() = runTest {
         // given
         val keyPair = Ed25519.generateKeyPair()
         val pubkey = SolanaPublicKey(keyPair.publicKey)
@@ -109,6 +109,43 @@ class RpcClientTests {
         val response = rpc.sendTransaction(transaction,
             TransactionOptions(
                 commitment = Commitment.CONFIRMED,
+                encoding = Encoding.base58,
+                skipPreflight = true
+            )
+        )
+
+        // then
+        assertNull(airdropResponse.error)
+        assertNotNull(airdropResponse.result)
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertTrue { response.result!!.isNotEmpty() }
+    }
+
+    @Test
+    fun `sendTransaction with base64 encoding returns transaction signature`() = runTest {
+        // given
+        val keyPair = Ed25519.generateKeyPair()
+        val pubkey = SolanaPublicKey(keyPair.publicKey)
+        val rpc = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+        val message = "hello solana!"
+
+        // when
+        val airdropResponse = rpc.requestAirdrop(pubkey, 0.1f)
+        val blockhashResponse = rpc.getLatestBlockhash()
+
+        val transaction = Message.Builder()
+            .setRecentBlockhash(blockhashResponse.result!!.blockhash)
+            .addInstruction(buildMemoTransaction(pubkey, message))
+            .build().run {
+                val sig = Ed25519.sign(keyPair, serialize())
+                Transaction(listOf(sig), this)
+            }
+
+        val response = rpc.sendTransaction(transaction,
+            TransactionOptions(
+                commitment = Commitment.CONFIRMED,
+                encoding = Encoding.base64,
                 skipPreflight = true
             )
         )

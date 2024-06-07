@@ -187,15 +187,15 @@ class SolanaRpcClient(
     ) : SolanaRpcRequest(
             method = "sendTransaction",
             params = buildJsonArray {
-                add(
-                    if(options.encoding == Encoding.base58)
-                        Base58.encodeToString(transaction.serialize())
-                    else Base64.encodeToString(transaction.serialize())
-                )
+                add(when (options.encoding) {
+                    Encoding.base58 -> Base58.encodeToString(transaction.serialize())
+                    Encoding.base64 -> Base64.getEncoder(true)
+                        .encodeToString(transaction.serialize())
+                })
                 addJsonObject {
                     put("encoding", options.encoding.getEncoding())
                     put("skipPreflight", options.skipPreflight)
-                    put("preflightCommitment", options.preflightCommitment.value)
+                    put("preflightCommitment", options.preflightCommitment.toString())
                 }
             },
             requestId
