@@ -31,7 +31,7 @@ kotlin {
             dependencies {
                 implementation(project(mapOf("path" to ":rpccore")))
                 implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.ktor.client.core)
+                api(libs.ktor.client.core)
                 implementation(libs.ktor.client.cio)
             }
         }
