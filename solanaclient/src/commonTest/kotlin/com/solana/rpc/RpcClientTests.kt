@@ -104,7 +104,7 @@ class RpcClientTests {
                 Transaction(listOf(sig), this)
             }
 
-        val response = rpc.sendTransaction(transaction)
+        val response = rpc.sendTransaction(transaction, skipPreflight = true)
 
         // then
         assertNull(airdropResponse.error)
