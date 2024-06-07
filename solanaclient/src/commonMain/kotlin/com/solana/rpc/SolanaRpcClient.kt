@@ -1,6 +1,7 @@
 package com.solana.rpc
 
 import com.funkatronics.encoders.Base58
+import com.funkatronics.encoders.Base64
 import com.solana.networking.HttpNetworkDriver
 import com.solana.networking.Rpc20Driver
 import com.solana.publickey.SolanaPublicKey
@@ -186,7 +187,11 @@ class SolanaRpcClient(
     ) : SolanaRpcRequest(
             method = "sendTransaction",
             params = buildJsonArray {
-                add(Base58.encodeToString(transaction.serialize()))
+                add(
+                    if(options.encoding == Encoding.base58)
+                        Base58.encodeToString(transaction.serialize())
+                    else Base64.encodeToString(transaction.serialize())
+                )
                 addJsonObject {
                     put("encoding", options.encoding.getEncoding())
                     put("skipPreflight", options.skipPreflight)
