@@ -1,6 +1,6 @@
 plugins {
-    kotlin("multiplatform")
-    id("com.vanniktech.maven.publish")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.publish)
 }
 
 val artifactIdPrefix: String by project
@@ -26,8 +26,8 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
     }
