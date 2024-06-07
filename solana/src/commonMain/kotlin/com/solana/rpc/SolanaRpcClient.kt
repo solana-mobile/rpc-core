@@ -75,6 +75,7 @@ class SolanaRpcClient(val rpcDriver: Rpc20Driver) {
         Result.success(signature)
     }
 
+    //region Requests
     class AirdropRequest(address: SolanaPublicKey, lamports: Long, requestId: String = "1")
         : JsonRpc20Request(
         method = "requestAirdrop",
@@ -108,12 +109,6 @@ class SolanaRpcClient(val rpcDriver: Rpc20Driver) {
         requestId
     )
 
-    @Serializable
-    class BlockhashResponse(
-        val blockhash: String,
-        val lastValidBlockHeight: Long
-    )
-
     class SendTransactionRequest(transaction: Transaction, skipPreflight: Boolean = true, requestId: String = "1")
         : JsonRpc20Request(
         method = "sendTransaction",
@@ -138,14 +133,6 @@ class SolanaRpcClient(val rpcDriver: Rpc20Driver) {
         requestId
     )
 
-    @Serializable
-    data class SignatureStatus(
-        val slot: Long,
-        val confirmations: Long?,
-        var err: JsonObject?,
-        var confirmationStatus: String?
-    )
-
     class RentExemptBalanceRequest(size: Long, commitment: String? = null, requestId: String = "1")
         : JsonRpc20Request(
         method = "getMinimumBalanceForRentExemption",
@@ -159,4 +146,21 @@ class SolanaRpcClient(val rpcDriver: Rpc20Driver) {
         },
         requestId
     )
+    //endregion
+
+    //region Responses
+    @Serializable
+    class BlockhashResponse(
+        val blockhash: String,
+        val lastValidBlockHeight: Long
+    )
+
+    @Serializable
+    data class SignatureStatus(
+        val slot: Long,
+        val confirmations: Long?,
+        var err: JsonObject?,
+        var confirmationStatus: String?
+    )
+    //endregion
 }

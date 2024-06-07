@@ -40,10 +40,11 @@ kotlin {
         val commonTest by getting {
             kotlin.srcDir(File("${buildDir}/generated/src/commonTest/kotlin"))
             dependencies {
-                implementation(libs.kotlin.test)
                 implementation(project(mapOf("path" to ":ktordriver")))
+                implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.crypto)
             }
         }
     }
