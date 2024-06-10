@@ -189,8 +189,7 @@ class SolanaRpcClient(
             params = buildJsonArray {
                 add(when (options.encoding) {
                     Encoding.base58 -> Base58.encodeToString(transaction.serialize())
-                    Encoding.base64 -> Base64.getEncoder(true)
-                        .encodeToString(transaction.serialize())
+                    Encoding.base64 -> Base64.encodeToString(transaction.serialize())
                 })
                 addJsonObject {
                     put("encoding", options.encoding.getEncoding())

@@ -16,7 +16,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
-multimult = { group = "io.github.funkatronics", name = "multimult", version = "0.2.1" }
+multimult = { group = "io.github.funkatronics", name = "multimult", version = "0.2.2" }
 web3-solana = { group = "com.solanamobile", name = "web3-solana", version = "0.3.0-beta3" }
 
 [plugins]
