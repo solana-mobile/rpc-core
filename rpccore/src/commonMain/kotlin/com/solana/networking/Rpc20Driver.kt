@@ -3,9 +3,6 @@ package com.solana.networking
 import com.solana.rpccore.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 
 class Rpc20Driver(private val url: String,
                   private val httpDriver: HttpNetworkDriver,
