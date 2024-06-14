@@ -44,6 +44,24 @@ class SolanaRpcClient(
             String.serializer()
         )
 
+    suspend fun <D> getAccountInfo(
+        serializer: KSerializer<D>,
+        publicKey: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        AccountInfoRequest(publicKey, commitment, minContextSlot, requestId),
+        SolanaAccountSerializer(serializer)
+    )
+
+    suspend inline fun <reified D> getAccountInfo(
+        publicKey: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        requestId: String? = null
+    ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, requestId)
+
     suspend fun getBalance(
         address: SolanaPublicKey,
         commitment: Commitment = Commitment.CONFIRMED,
@@ -133,6 +151,25 @@ class SolanaRpcClient(
         method,
         params,
         id ?: "$method-${Random.nextInt(100000000, 999999999)}"
+    )
+
+    class AccountInfoRequest(
+        publicKey: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        requestId: String? = null
+    ) : SolanaRpcRequest(
+        method = "getAccountInfo",
+        params = buildJsonArray {
+            add(publicKey.base58())
+            addJsonObject {
+                put("encoding", Encoding.base64.getEncoding())
+                commitment?.let { put("commitment", commitment.value) }
+                minContextSlot?.let { put("minContextSlot", minContextSlot) }
+                // TODO: support data slicing
+            }
+        },
+        requestId
     )
 
     class AirdropRequest(

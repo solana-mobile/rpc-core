@@ -1,19 +1,89 @@
 package com.solana.rpc
 
+import com.funkatronics.encoders.Base64
+import com.funkatronics.kborsh.Borsh
 import com.solana.config.TestConfig
 import com.solana.networking.KtorNetworkDriver
 import com.solana.publickey.SolanaPublicKey
+import com.solana.serialization.ByteStringSerializer
 import com.solana.transaction.AccountMeta
 import com.solana.transaction.Message
 import com.solana.transaction.Transaction
 import com.solana.transaction.TransactionInstruction
 import diglol.crypto.Ed25519
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToByteArray
 import kotlin.test.*
 
 class RpcClientTests {
+
+    @Test
+    fun `getAccountInfo returns AccountInfo object`() = runTest {
+        // given
+        val expectedAccountData = "system_program"
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getAccountInfo(
+            ByteStringSerializer(expectedAccountData.length),
+            SolanaPublicKey.from("11111111111111111111111111111111")
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(expectedAccountData, response.result!!.data!!.decodeToString())
+    }
+
+    @Test
+    fun `getAccountInfo deserializes account data struct`() = runTest {
+        // given
+        @Serializable
+        data class TestAccountData(val name: String, val number: Int, val bool: Boolean)
+        val testData = TestAccountData("accountInfoTest", 123456789, false)
+        val testDataBorsh = Borsh.encodeToByteArray(testData)
+        val ownerPubkey = SolanaPublicKey.from("11111111111111111111111111111111")
+        val mockedResponse = """
+            {
+                "jsonrpc":"2.0",
+                "result":{
+                    "context":{"apiVersion":"apiVer","slot":123456789},
+                    "value":{
+                        "data":[
+                            "${Base64.encodeToString(testDataBorsh)}",
+                            "base64"
+                        ]
+                        "executable":true,
+                        "lamports":1,
+                        "owner":"11111111111111111111111111111111",
+                        "rentEpoch":1234567890,
+                        "space":${testDataBorsh.size}
+                    }
+                },
+                "id":"requestId"
+            }
+        """.trimIndent()
+
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver(
+            HttpClient(MockEngine {
+                respond(mockedResponse)
+            })
+        ))
+
+        // when
+        val response = rpcClient.getAccountInfo<TestAccountData>(ownerPubkey)
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(response.result!!.owner, ownerPubkey)
+        assertEquals(testData, response.result!!.data)
+    }
 
     @Test
     fun `getLatestBlockhash returns valid blockhash response`() = runTest {
