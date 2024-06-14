@@ -43,7 +43,7 @@ class RpcClientTests {
     @Test
     fun `getAccountInfo with data slicing returns AccountInfo object with sliced data`() = runTest {
         // given
-        val dataSlice = AccountInfoRequest.DataSlice(8, 2)
+        val dataSlice = AccountRequest.DataSlice(8, 2)
         val expectedAccountData = "stem_pro"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
@@ -150,7 +150,7 @@ class RpcClientTests {
     @Test
     fun `getMultipleAccounts with data slicing returns AccountInfo object with sliced data`() = runTest {
         // given
-        val dataSlice = AccountInfoRequest.DataSlice(8, 2)
+        val dataSlice = AccountRequest.DataSlice(8, 2)
         val expectedAccountData = "stem_pro"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
@@ -170,6 +170,42 @@ class RpcClientTests {
         assertEquals(2, response.result!!.size)
         assertEquals(expectedAccountData, response.result!!.first()?.data!!.decodeToString())
         assertEquals(expectedAccountData, response.result!![1]?.data!!.decodeToString())
+    }
+
+    @Test
+    fun `getProgramAccounts returns list of AccountInfoWithPublicKey objects`() = runTest {
+        // given
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getProgramAccounts(
+            ByteStringSerializer(10),
+            SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
+            dataSlice = AccountRequest.DataSlice(10, 0)
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertTrue { response.result!!.size > 1 }
+    }
+
+    @Test
+    fun `getProgramAccounts returns empty list`() = runTest {
+        // given
+        val randomPublicKey = Ed25519.generateKeyPair().publicKey
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getProgramAccounts(
+            ByteStringSerializer(10),
+            SolanaPublicKey(randomPublicKey),
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(0, response.result!!.size)
     }
 
     @Test

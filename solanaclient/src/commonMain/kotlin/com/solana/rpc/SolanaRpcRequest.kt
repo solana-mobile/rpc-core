@@ -22,7 +22,9 @@ sealed class SolanaRpcRequest(
         params?.invoke(this)
         configuration?.let {
             buildJsonObject(configuration).filterValues {
-                it != JsonNull && !(it is JsonObject && it.jsonObject.filterValues { it != JsonNull }.isEmpty())
+                it != JsonNull &&
+                        !(it is JsonObject && it.jsonObject.filterValues { it != JsonNull }.isEmpty()) &&
+                        !(it is JsonArray && it.jsonArray.isEmpty() && it.jsonArray.none { it != JsonNull })
             }
         }?.let {
             if (it.isNotEmpty()) add(JsonObject(it))
@@ -40,43 +42,34 @@ sealed class SolanaRpcRequest(
     }
 }
 
+sealed class AccountRequest(
+    method: String,
+    params: (JsonArrayBuilder.() -> Unit)? = null,
+    configuration: (JsonObjectBuilder.() -> Unit)? = null,
+    id: String? = null
+) : SolanaRpcRequest(
+    method,
+    params,
+    configuration = {
+        put("encoding", Encoding.base64.getEncoding())
+        configuration?.invoke(this)
+    },
+    id
+) {
+    @Serializable
+    data class DataSlice(val length: Long, val offset: Long)
+}
+
 class AccountInfoRequest(
     publicKey: SolanaPublicKey,
     commitment: Commitment? = null,
     minContextSlot: Long? = null,
     dataSlice: DataSlice? = null,
     requestId: String? = null
-) : SolanaRpcRequest(
+) : AccountRequest(
     method = "getAccountInfo",
     params = { add(publicKey.base58()) },
     configuration = {
-        put("encoding", Encoding.base64.getEncoding())
-        put("commitment", commitment?.value)
-        put("minContextSlot", minContextSlot)
-        put("dataSlice", buildJsonObject {
-            put("length", dataSlice?.length)
-            put("offset", dataSlice?.offset)
-        })
-    },
-    requestId
-) {
-    @Serializable
-    data class DataSlice(val length: Long, val offset: Long)
-}
-
-class MultipleAccountsInfoRequest(
-    publicKeys: List<SolanaPublicKey>,
-    commitment: Commitment? = null,
-    minContextSlot: Long? = null,
-    dataSlice: AccountInfoRequest.DataSlice? = null,
-    requestId: String? = null
-) : SolanaRpcRequest(
-    method = "getMultipleAccounts",
-    params = { addJsonArray {
-        publicKeys.forEach { add(it.base58()) }
-    }},
-    configuration = {
-        put("encoding", Encoding.base64.getEncoding())
         put("commitment", commitment?.value)
         put("minContextSlot", minContextSlot)
         put("dataSlice", buildJsonObject {
@@ -86,6 +79,72 @@ class MultipleAccountsInfoRequest(
     },
     requestId
 )
+
+class MultipleAccountsInfoRequest(
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: DataSlice? = null,
+    requestId: String? = null
+) : AccountRequest(
+    method = "getMultipleAccounts",
+    params = { addJsonArray {
+        publicKeys.forEach { add(it.base58()) }
+    }},
+    configuration = {
+        put("commitment", commitment?.value)
+        put("minContextSlot", minContextSlot)
+        put("dataSlice", buildJsonObject {
+            put("length", dataSlice?.length)
+            put("offset", dataSlice?.offset)
+        })
+    },
+    requestId
+)
+
+class ProgramAccountsRequest(
+    program: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: DataSlice? = null,
+    filters: List<Filter>? = null,
+    requestId: String? = null
+) : AccountRequest(
+    method = "getProgramAccounts",
+    params = { add(program.base58()) },
+    configuration = {
+        put("withContext", false)
+        put("commitment", commitment?.value)
+        put("minContextSlot", minContextSlot)
+        put("dataSlice", buildJsonObject {
+            put("length", dataSlice?.length)
+            put("offset", dataSlice?.offset)
+        })
+        filters?.let {
+            put("filters", JsonArray(filters.map { it.toJsonObject() }))
+        }
+    },
+    requestId
+) {
+    init {
+        require((filters?.size ?: 0) < 4) { "Too many filters, maximum is 4" }
+    }
+
+    class DataSize(val dataSize: Long) : Filter
+    class MemCompare(val offset: Long, val bytes: String) : Filter
+    sealed interface Filter {
+        fun toJsonObject() = buildJsonObject {
+            when (this@Filter) {
+                is DataSize -> put("dataSize", dataSize)
+                is MemCompare -> {
+                    put("offset", offset)
+                    put("bytes", bytes)
+                    put("encoding", Encoding.base64.getEncoding())
+                }
+            }
+        }
+    }
+}
 
 class AirdropRequest(
     address: SolanaPublicKey,

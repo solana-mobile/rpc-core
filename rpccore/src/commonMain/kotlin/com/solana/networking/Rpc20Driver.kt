@@ -30,7 +30,7 @@ class Rpc20Driver(private val url: String,
             try {
                 json.decodeFromString(Rpc20Response.serializer(resultSerializer), this)
             } catch (e: Exception) {
-                Rpc20Response(error = RpcError(-1, e.message ?: this))
+                Rpc20Response(error = RpcError(-1, e.message ?: e.toString()))
             }
         }
     }

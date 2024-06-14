@@ -45,5 +45,5 @@ fun <A> ProgramAccountsSerializer(serializer: KSerializer<A>) =
     ListSerializer(
         AccountInfoWithPublicKey.serializer(
             BorshAsBase64JsonArraySerializer(serializer)
-        ).nullable
+        )
     )

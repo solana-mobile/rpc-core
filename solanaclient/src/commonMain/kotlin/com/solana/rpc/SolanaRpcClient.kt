@@ -37,7 +37,7 @@ class SolanaRpcClient(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
-        dataSlice: AccountInfoRequest.DataSlice? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
         requestId: String? = null
     ) = makeRequest(
         AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
@@ -48,7 +48,7 @@ class SolanaRpcClient(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
-        dataSlice: AccountInfoRequest.DataSlice? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
         requestId: String? = null
     ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
 
@@ -81,7 +81,7 @@ class SolanaRpcClient(
         publicKeys: List<SolanaPublicKey>,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
-        dataSlice: AccountInfoRequest.DataSlice? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
         requestId: String? = null
     ) = makeRequest(
         MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
@@ -92,9 +92,33 @@ class SolanaRpcClient(
         publicKeys: List<SolanaPublicKey>,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
-        dataSlice: AccountInfoRequest.DataSlice? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
         requestId: String? = null
     ) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
+
+    suspend fun <D> getProgramAccounts(
+        serializer: KSerializer<D>,
+        programId: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        filters: List<ProgramAccountsRequest.Filter>? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
+        ProgramAccountsSerializer(serializer)
+    )
+
+    suspend inline fun <reified D> getProgramAccounts(
+        programId: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        filters: List<ProgramAccountsRequest.Filter>? = null,
+        requestId: String? = null
+    ) = getProgramAccounts<D>(serializer(),
+        programId, commitment, minContextSlot, dataSlice, filters, requestId
+    )
 
     suspend fun getSignatureStatuses(
         signatures: List<String>,
