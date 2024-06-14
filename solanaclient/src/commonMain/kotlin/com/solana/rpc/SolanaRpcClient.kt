@@ -49,9 +49,10 @@ class SolanaRpcClient(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
+        dataSlice: AccountInfoRequest.DataSlice? = null,
         requestId: String? = null
     ) = makeRequest(
-        AccountInfoRequest(publicKey, commitment, minContextSlot, requestId),
+        AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
         SolanaAccountSerializer(serializer)
     )
 
@@ -59,8 +60,9 @@ class SolanaRpcClient(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
+        dataSlice: AccountInfoRequest.DataSlice? = null,
         requestId: String? = null
-    ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, requestId)
+    ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
 
     suspend fun getBalance(
         address: SolanaPublicKey,
@@ -157,6 +159,7 @@ class SolanaRpcClient(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
+        dataSlice: DataSlice? = null,
         requestId: String? = null
     ) : SolanaRpcRequest(
         method = "getAccountInfo",
@@ -166,11 +169,19 @@ class SolanaRpcClient(
                 put("encoding", Encoding.base64.getEncoding())
                 commitment?.let { put("commitment", commitment.value) }
                 minContextSlot?.let { put("minContextSlot", minContextSlot) }
-                // TODO: support data slicing
+                dataSlice?.let {
+                    putJsonObject("dataSlice") {
+                        put("length", dataSlice.length)
+                        put("offset", dataSlice.offset)
+                    }
+                }
             }
         },
         requestId
-    )
+    ) {
+        @Serializable
+        data class DataSlice(val length: Long, val offset: Long)
+    }
 
     class AirdropRequest(
         address: SolanaPublicKey,

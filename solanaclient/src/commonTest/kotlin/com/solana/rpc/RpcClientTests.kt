@@ -41,6 +41,26 @@ class RpcClientTests {
     }
 
     @Test
+    fun `getAccountInfo with data slicing returns AccountInfo object with sliced data`() = runTest {
+        // given
+        val dataSlice = SolanaRpcClient.AccountInfoRequest.DataSlice(8, 2)
+        val expectedAccountData = "stem_pro"
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getAccountInfo(
+            ByteStringSerializer(expectedAccountData.length),
+            SolanaPublicKey.from("11111111111111111111111111111111"),
+            dataSlice = dataSlice
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(expectedAccountData, response.result!!.data!!.decodeToString())
+    }
+
+    @Test
     fun `getAccountInfo deserializes account data struct`() = runTest {
         // given
         @Serializable
