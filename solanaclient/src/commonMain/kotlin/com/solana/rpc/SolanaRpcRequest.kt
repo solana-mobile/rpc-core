@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package com.solana.rpc
 
 import com.funkatronics.encoders.Base58
@@ -8,7 +6,6 @@ import com.funkatronics.hash.Sha256
 import com.solana.publickey.SolanaPublicKey
 import com.solana.rpccore.JsonRpc20Request
 import com.solana.transaction.Transaction
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import kotlin.jvm.JvmStatic
