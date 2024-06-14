@@ -16,20 +16,20 @@ import kotlin.random.Random
 
 sealed class SolanaRpcRequest(
     method: String,
-    params: List<JsonElement>? = null,
-    configuration: Map<String, JsonElement?>? = null,
+    params: (JsonArrayBuilder.() -> Unit)? = null,
+    configuration: (JsonObjectBuilder.() -> Unit)? = null,
     id: String? = null
 ) : JsonRpc20Request(
     method,
     buildJsonArray {
-        if (!params.isNullOrEmpty()) addAll(params)
-        configuration?.filterValues { it != null && it !is JsonNull }?.let { config ->
-            if (config.isNotEmpty()) addJsonObject {
-                config.forEach { (k, v) -> put(k, v!!) }
+        params?.invoke(this)
+        configuration?.let {
+            buildJsonObject(configuration).filterValues {
+                it != JsonNull && !(it is JsonObject && it.jsonObject.filterValues { it != JsonNull }.isEmpty())
             }
+        }?.let {
+            if (it.isNotEmpty()) add(JsonObject(it))
         }
-    }.also {
-        println(Json.encodeToString(JsonArray.serializer(), it))
     },
     id ?: generateRequestId(method)
 ) {
@@ -51,13 +51,16 @@ class AccountInfoRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "getAccountInfo",
-    params = listOf(JsonPrimitive(publicKey.base58())),
-    configuration = mapOf(
-        "encoding" to JsonPrimitive(Encoding.base64.getEncoding()),
-        "commitment" to JsonPrimitive(commitment?.value),
-        "minContextSlot" to JsonPrimitive(minContextSlot),
-        "dataSlice" to Json.encodeToJsonElement(dataSlice),
-    ),
+    params = { add(publicKey.base58()) },
+    configuration = {
+        put("encoding", Encoding.base64.getEncoding())
+        put("commitment", commitment?.value)
+        put("minContextSlot", minContextSlot)
+        put("dataSlice", buildJsonObject {
+            put("length", dataSlice?.length)
+            put("offset", dataSlice?.offset)
+        })
+    },
     requestId
 ) {
     @Serializable
@@ -70,10 +73,10 @@ class AirdropRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "requestAirdrop",
-    params = listOf(
-        JsonPrimitive(address.base58()),
-        JsonPrimitive(lamports)
-    ),
+    params = {
+        add(address.base58())
+        add(lamports)
+    },
     id = requestId
 )
 
@@ -83,10 +86,10 @@ class BalanceRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "getBalance",
-    params = listOf(JsonPrimitive(address.base58())),
-    configuration = mapOf(
-        "commitment" to JsonPrimitive(commitment.value),
-    ),
+    params = { add(address.base58()) },
+    configuration = {
+        put("commitment", commitment.value)
+    },
     requestId
 )
 
@@ -97,10 +100,10 @@ class LatestBlockhashRequest(
 ) : SolanaRpcRequest(
     method = "getLatestBlockhash",
     params = null,
-    configuration = mapOf(
-        "commitment" to JsonPrimitive(commitment?.value),
-        "minContextSlot" to JsonPrimitive(minContextSlot),
-    ),
+    configuration = {
+        put("commitment", commitment?.value)
+        put("minContextSlot", minContextSlot)
+    },
     requestId
 )
 
@@ -110,15 +113,15 @@ class SendTransactionRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "sendTransaction",
-    params = listOf(JsonPrimitive(when (options.encoding) {
+    params = { add(when (options.encoding) {
         Encoding.base58 -> Base58.encodeToString(transaction.serialize())
         Encoding.base64 -> Base64.encodeToString(transaction.serialize())
-    })),
-    configuration = mapOf(
-        "encoding" to JsonPrimitive(options.encoding.getEncoding()),
-        "skipPreflight" to JsonPrimitive(options.skipPreflight),
-        "preflightCommitment" to JsonPrimitive(options.preflightCommitment.toString())
-    ),
+    })},
+    configuration = {
+        put("encoding", options.encoding.getEncoding())
+        put("skipPreflight", options.skipPreflight)
+        put("preflightCommitment", options.preflightCommitment.toString())
+    },
     requestId
 )
 
@@ -128,8 +131,12 @@ class SignatureStatusesRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "getSignatureStatuses",
-    params = listOf(JsonArray(transactionIds.map { JsonPrimitive(it) })),
-    configuration = mapOf("searchTransactionHistory" to JsonPrimitive(searchTransactionHistory)),
+    params = { addJsonArray {
+        transactionIds.forEach { add(it) }
+    }},
+    configuration = {
+        put("searchTransactionHistory", searchTransactionHistory)
+    },
     requestId
 )
 
@@ -139,7 +146,7 @@ class RentExemptBalanceRequest(
     requestId: String? = null
 ) : SolanaRpcRequest(
     method = "getMinimumBalanceForRentExemption",
-    params = listOf(JsonPrimitive(size)),
-    configuration = mapOf("commitment" to JsonPrimitive(commitment?.value)),
+    params = { add(size) },
+    configuration = { put("commitment", commitment?.value) },
     requestId
 )
