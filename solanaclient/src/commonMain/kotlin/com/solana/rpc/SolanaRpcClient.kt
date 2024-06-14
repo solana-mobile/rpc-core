@@ -1,11 +1,8 @@
 package com.solana.rpc
 
-import com.funkatronics.encoders.Base58
-import com.funkatronics.encoders.Base64
 import com.solana.networking.HttpNetworkDriver
 import com.solana.networking.Rpc20Driver
 import com.solana.publickey.SolanaPublicKey
-import com.solana.rpccore.JsonRpc20Request
 import com.solana.rpccore.RpcRequest
 import com.solana.serializers.SolanaResponseSerializer
 import com.solana.transaction.Transaction
@@ -13,14 +10,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
 import kotlin.math.pow
-import kotlin.random.Random
 
 class SolanaRpcClient(
     val rpcDriver: Rpc20Driver,
@@ -113,8 +107,7 @@ class SolanaRpcClient(
     suspend fun confirmTransaction(
         transactionSignature: String,
         options: TransactionOptions = defaultTransactionOptions
-    ): Result<Boolean> =
-        withTimeout(options.timeout) {
+    ): Result<Boolean> = withTimeout(options.timeout) {
             val requiredCommitment = options.commitment.ordinal
 
             suspend fun confirmationStatus() =
