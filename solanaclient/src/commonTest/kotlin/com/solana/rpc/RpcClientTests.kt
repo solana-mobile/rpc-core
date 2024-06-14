@@ -179,9 +179,9 @@ class RpcClientTests {
 
         // when
         val response = rpcClient.getProgramAccounts(
-            ByteStringSerializer(10),
+            ByteStringSerializer(1),
             SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
-            dataSlice = AccountRequest.DataSlice(10, 0)
+            dataSlice = AccountRequest.DataSlice(1, 0)
         )
 
         // then
