@@ -106,6 +106,73 @@ class RpcClientTests {
     }
 
     @Test
+    fun `getMultipleAccounts returns AccountInfo object`() = runTest {
+        // given
+        val expectedAccountData = "system_program"
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getMultipleAccounts(
+            ByteStringSerializer(expectedAccountData.length),
+            listOf(
+                SolanaPublicKey.from("11111111111111111111111111111111"),
+                SolanaPublicKey.from("11111111111111111111111111111111"),
+            ),
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(2, response.result!!.size)
+        assertEquals(expectedAccountData, response.result!!.first()?.data!!.decodeToString())
+        assertEquals(expectedAccountData, response.result!![1]?.data!!.decodeToString())
+    }
+
+    @Test
+    fun `getMultipleAccounts returns null in list`() = runTest {
+        // given
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getMultipleAccounts(
+            ByteStringSerializer(0),
+            listOf(
+                SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
+            ),
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertNull(response.result!!.first())
+    }
+
+    @Test
+    fun `getMultipleAccounts with data slicing returns AccountInfo object with sliced data`() = runTest {
+        // given
+        val dataSlice = AccountInfoRequest.DataSlice(8, 2)
+        val expectedAccountData = "stem_pro"
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+
+        // when
+        val response = rpcClient.getMultipleAccounts(
+            ByteStringSerializer(expectedAccountData.length),
+            listOf(
+                SolanaPublicKey.from("11111111111111111111111111111111"),
+                SolanaPublicKey.from("11111111111111111111111111111111"),
+            ),
+            dataSlice = dataSlice
+        )
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(2, response.result!!.size)
+        assertEquals(expectedAccountData, response.result!!.first()?.data!!.decodeToString())
+        assertEquals(expectedAccountData, response.result!![1]?.data!!.decodeToString())
+    }
+
+    @Test
     fun `getLatestBlockhash returns valid blockhash response`() = runTest {
         // given
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())

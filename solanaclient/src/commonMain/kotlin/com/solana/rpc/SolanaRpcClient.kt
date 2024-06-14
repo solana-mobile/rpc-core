@@ -61,12 +61,6 @@ class SolanaRpcClient(
         SolanaResponseSerializer(Long.serializer())
     )
 
-    suspend fun getMinBalanceForRentExemption(
-        size: Long,
-        commitment: Commitment? = null,
-        requestId: String? = null
-    ) = makeRequest(RentExemptBalanceRequest(size, commitment, requestId), Long.serializer())
-
     suspend fun getLatestBlockhash(
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -74,6 +68,41 @@ class SolanaRpcClient(
     ) = makeRequest(
         LatestBlockhashRequest(commitment, minContextSlot, requestId),
         SolanaResponseSerializer(BlockhashResponse.serializer())
+    )
+
+    suspend fun getMinBalanceForRentExemption(
+        size: Long,
+        commitment: Commitment? = null,
+        requestId: String? = null
+    ) = makeRequest(RentExemptBalanceRequest(size, commitment, requestId), Long.serializer())
+
+    suspend fun <D> getMultipleAccounts(
+        serializer: KSerializer<D>,
+        publicKeys: List<SolanaPublicKey>,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountInfoRequest.DataSlice? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
+        MultipleAccountsSerializer(serializer)
+    )
+
+    suspend inline fun <reified D> getMultipleAccounts(
+        publicKeys: List<SolanaPublicKey>,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountInfoRequest.DataSlice? = null,
+        requestId: String? = null
+    ) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
+
+    suspend fun getSignatureStatuses(
+        signatures: List<String>,
+        searchTransactionHistory: Boolean = false,
+        requestId: String? = null
+    ) = makeRequest(
+        SignatureStatusesRequest(signatures, searchTransactionHistory, requestId),
+        SolanaResponseSerializer(ListSerializer(SignatureStatus.serializer().nullable))
     )
 
     suspend fun sendTransaction(
@@ -88,15 +117,6 @@ class SolanaRpcClient(
     ) = sendTransaction(transaction, options).apply {
         result?.let { confirmTransaction(it, options) }
     }
-
-    suspend fun getSignatureStatuses(
-        signatures: List<String>,
-        searchTransactionHistory: Boolean = false,
-        requestId: String? = null
-    ) = makeRequest(
-        SignatureStatusesRequest(signatures, searchTransactionHistory, requestId),
-        SolanaResponseSerializer(ListSerializer(SignatureStatus.serializer().nullable))
-    )
 
     suspend fun confirmTransaction(
         transactionSignature: String,

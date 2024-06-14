@@ -64,6 +64,29 @@ class AccountInfoRequest(
     data class DataSlice(val length: Long, val offset: Long)
 }
 
+class MultipleAccountsInfoRequest(
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountInfoRequest.DataSlice? = null,
+    requestId: String? = null
+) : SolanaRpcRequest(
+    method = "getMultipleAccounts",
+    params = { addJsonArray {
+        publicKeys.forEach { add(it.base58()) }
+    }},
+    configuration = {
+        put("encoding", Encoding.base64.getEncoding())
+        put("commitment", commitment?.value)
+        put("minContextSlot", minContextSlot)
+        put("dataSlice", buildJsonObject {
+            put("length", dataSlice?.length)
+            put("offset", dataSlice?.offset)
+        })
+    },
+    requestId
+)
+
 class AirdropRequest(
     address: SolanaPublicKey,
     lamports: Long,
