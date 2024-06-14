@@ -43,7 +43,7 @@ class RpcClientTests {
     @Test
     fun `getAccountInfo with data slicing returns AccountInfo object with sliced data`() = runTest {
         // given
-        val dataSlice = SolanaRpcClient.AccountInfoRequest.DataSlice(8, 2)
+        val dataSlice = AccountInfoRequest.DataSlice(8, 2)
         val expectedAccountData = "stem_pro"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
