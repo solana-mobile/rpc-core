@@ -17,7 +17,7 @@ import kotlinx.serialization.serializer
 import kotlin.math.pow
 
 class SolanaRpcClient(
-    val rpcDriver: Rpc20Driver,
+    private val rpcDriver: Rpc20Driver,
     private val defaultTransactionOptions: TransactionOptions = TransactionOptions()
 ) {
 
@@ -25,12 +25,6 @@ class SolanaRpcClient(
         url: String, networkDriver: HttpNetworkDriver,
         defaultTransactionOptions: TransactionOptions = TransactionOptions()
     ) : this(Rpc20Driver(url, networkDriver), defaultTransactionOptions)
-
-    suspend inline fun <T> makeRequest(request: RpcRequest, serializer: KSerializer<T>) =
-        rpcDriver.makeRequest(request, serializer)
-
-    suspend inline fun <reified T> makeRequest(request: RpcRequest) =
-        rpcDriver.makeRequest<T>(request, serializer())
 
     suspend fun requestAirdrop(address: SolanaPublicKey, amountSol: Float, requestId: String? = null) =
         makeRequest(
@@ -136,4 +130,10 @@ class SolanaRpcClient(
 
             return@withTimeout Result.success(isActive)
         }
+
+    private suspend inline fun <T> makeRequest(request: RpcRequest, serializer: KSerializer<T>) =
+        rpcDriver.makeRequest(request, serializer)
+
+    private suspend inline fun <reified T> makeRequest(request: RpcRequest) =
+        rpcDriver.makeRequest<T>(request, serializer())
 }
