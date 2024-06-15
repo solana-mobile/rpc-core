@@ -258,20 +258,23 @@ class RpcClientTests {
         val mockedResponse = """
             {
                 "jsonrpc":"2.0",
-                "result":[{
-                    "account": {
-                        "data":[
-                            "${Base64.encodeToString(testDataBorsh)}",
-                            "base64"
-                        ]
-                        "executable":true,
-                        "lamports":1,
-                        "owner":"11111111111111111111111111111111",
-                        "rentEpoch":1234567890,
-                        "space":${testDataBorsh.size}
-                    },
-                    "pubkey": "11111111111111111111111111111111"
-                }]
+                "result":{
+                    "context":{"apiVersion":"apiVer","slot":123456789},
+                    "value":[{
+                        "account": {
+                            "data":[
+                                "${Base64.encodeToString(testDataBorsh)}",
+                                "base64"
+                            ]
+                            "executable":true,
+                            "lamports":1,
+                            "owner":"11111111111111111111111111111111",
+                            "rentEpoch":1234567890,
+                            "space":${testDataBorsh.size}
+                        },
+                        "pubkey": "11111111111111111111111111111111"
+                    }]
+                }
                 "id":"requestId"
             }
         """.trimIndent()

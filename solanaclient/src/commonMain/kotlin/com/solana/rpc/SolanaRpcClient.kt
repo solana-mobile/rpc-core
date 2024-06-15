@@ -4,7 +4,7 @@ import com.solana.networking.HttpNetworkDriver
 import com.solana.networking.Rpc20Driver
 import com.solana.publickey.SolanaPublicKey
 import com.solana.rpccore.RpcRequest
-import com.solana.serializers.SolanaResponseSerializer
+import com.solana.serializers.SolanaResponseDeserializer
 import com.solana.transaction.Transaction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -59,7 +59,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         BalanceRequest(address, commitment, requestId),
-        SolanaResponseSerializer(Long.serializer())
+        SolanaResponseDeserializer(Long.serializer())
     )
 
     suspend fun getLatestBlockhash(
@@ -68,7 +68,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         LatestBlockhashRequest(commitment, minContextSlot, requestId),
-        SolanaResponseSerializer(BlockhashResponse.serializer())
+        SolanaResponseDeserializer(BlockhashResponse.serializer())
     )
 
     suspend fun getMinBalanceForRentExemption(
@@ -148,7 +148,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         SignatureStatusesRequest(signatures, searchTransactionHistory, requestId),
-        SolanaResponseSerializer(ListSerializer(SignatureStatus.serializer().nullable))
+        SolanaResponseDeserializer(ListSerializer(SignatureStatus.serializer().nullable))
     )
 
     suspend fun sendTransaction(

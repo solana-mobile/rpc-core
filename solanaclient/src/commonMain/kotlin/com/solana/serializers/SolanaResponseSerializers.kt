@@ -2,6 +2,8 @@ package com.solana.serializers
 
 import com.funkatronics.kborsh.Borsh
 import com.solana.rpc.Encoding
+import com.solana.rpc.SolanaResponse
+import com.solana.serialization.wrappedSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -9,20 +11,14 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-class SolanaResponseSerializer<R>(dataSerializer: KSerializer<R>)
-    : KSerializer<R?> {
-    private val serializer = WrappedValue.serializer(dataSerializer)
+class SolanaResponseDeserializer<R>(dataSerializer: DeserializationStrategy<R>)
+    : DeserializationStrategy<R?> {
+    private val serializer = SolanaResponse.serializer(dataSerializer.wrappedSerializer())
     override val descriptor: SerialDescriptor = serializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: R?) =
-        encoder.encodeSerializableValue(serializer, WrappedValue(value))
 
     override fun deserialize(decoder: Decoder): R? =
         decoder.decodeSerializableValue(serializer).value
 }
-
-@Serializable
-private class WrappedValue<V>(val value: V?)
 
 internal class ByteArrayAsEncodedDataArraySerializer(val encoding: Encoding) : SerializationStrategy<ByteArray> {
     private val delegateSerializer = ListSerializer(String.serializer())

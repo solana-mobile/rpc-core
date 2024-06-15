@@ -113,7 +113,7 @@ class ProgramAccountsRequest(
     method = "getProgramAccounts",
     params = { add(program.base58()) },
     configuration = {
-        put("withContext", false)
+        put("withContext", true)
         put("commitment", commitment?.serialName())
         put("minContextSlot", minContextSlot)
         put("dataSlice", buildJsonObject {
