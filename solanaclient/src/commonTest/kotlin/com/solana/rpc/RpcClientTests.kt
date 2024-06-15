@@ -5,7 +5,7 @@ import com.funkatronics.kborsh.Borsh
 import com.solana.config.TestConfig
 import com.solana.networking.KtorNetworkDriver
 import com.solana.publickey.SolanaPublicKey
-import com.solana.serialization.ByteStringSerializer
+import com.solana.serializers.ByteArrayAsEncodedDataArrayDeserializer
 import com.solana.transaction.AccountMeta
 import com.solana.transaction.Message
 import com.solana.transaction.Transaction
@@ -30,7 +30,7 @@ class RpcClientTests {
 
         // when
         val response = rpcClient.getAccountInfo(
-            ByteStringSerializer(expectedAccountData.length),
+            ByteArrayAsEncodedDataArrayDeserializer,
             SolanaPublicKey.from("11111111111111111111111111111111")
         )
 
@@ -49,7 +49,7 @@ class RpcClientTests {
 
         // when
         val response = rpcClient.getAccountInfo(
-            ByteStringSerializer(expectedAccountData.length),
+            ByteArrayAsEncodedDataArrayDeserializer,
             SolanaPublicKey.from("11111111111111111111111111111111"),
             dataSlice = dataSlice
         )
@@ -112,8 +112,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccounts(
-            ByteStringSerializer(expectedAccountData.length),
+        val response = rpcClient.getMultipleAccountsRaw(
             listOf(
                 SolanaPublicKey.from("11111111111111111111111111111111"),
                 SolanaPublicKey.from("11111111111111111111111111111111"),
@@ -134,8 +133,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccounts(
-            ByteStringSerializer(0),
+        val response = rpcClient.getMultipleAccountsRaw(
             listOf(
                 SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
             ),
@@ -155,8 +153,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccounts(
-            ByteStringSerializer(expectedAccountData.length),
+        val response = rpcClient.getMultipleAccountsRaw(
             listOf(
                 SolanaPublicKey.from("11111111111111111111111111111111"),
                 SolanaPublicKey.from("11111111111111111111111111111111"),
@@ -173,15 +170,58 @@ class RpcClientTests {
     }
 
     @Test
+    fun `getMultipleAccounts deserializes account data struct`() = runTest {
+        // given
+        @Serializable
+        data class TestAccountData(val name: String, val number: Int, val bool: Boolean)
+        val testData = TestAccountData("accountInfoTest", 123456789, false)
+        val testDataBorsh = Borsh.encodeToByteArray(testData)
+        val accountPubkey = SolanaPublicKey.from("11111111111111111111111111111111")
+        val mockedResponse = """
+            {
+                "jsonrpc":"2.0",
+                "result":{
+                    "context":{"apiVersion":"apiVer","slot":123456789},
+                    "value":[{
+                        "data":[
+                            "${Base64.encodeToString(testDataBorsh)}",
+                            "base64"
+                        ]
+                        "executable":true,
+                        "lamports":1,
+                        "owner":"11111111111111111111111111111111",
+                        "rentEpoch":1234567890,
+                        "space":${testDataBorsh.size}
+                    }]
+                },
+                "id":"requestId"
+            }
+        """.trimIndent()
+
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver(
+            HttpClient(MockEngine {
+                respond(mockedResponse)
+            })
+        ))
+
+        // when
+        val response = rpcClient.getMultipleAccounts<TestAccountData>(listOf(accountPubkey))
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(response.result!!.first()!!.owner, accountPubkey)
+        assertEquals(testData, response.result!!.first()!!.data)
+    }
+
+    @Test
     fun `getProgramAccounts returns list of AccountInfoWithPublicKey objects`() = runTest {
         // given
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getProgramAccounts(
-            ByteStringSerializer(1),
-            SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
-            dataSlice = AccountRequest.DataSlice(1, 0)
+        val response = rpcClient.getProgramAccountsRaw(
+            SolanaPublicKey.from("NativeLoader1111111111111111111111111111111")
         )
 
         // then
@@ -197,8 +237,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getProgramAccounts(
-            ByteStringSerializer(10),
+        val response = rpcClient.getProgramAccountsRaw(
             SolanaPublicKey(randomPublicKey),
         )
 
@@ -206,6 +245,51 @@ class RpcClientTests {
         assertNull(response.error)
         assertNotNull(response.result)
         assertEquals(0, response.result!!.size)
+    }
+
+    @Test
+    fun `getProgramAccounts deserializes account data struct`() = runTest {
+        // given
+        @Serializable
+        data class TestAccountData(val name: String, val number: Int, val bool: Boolean)
+        val testData = TestAccountData("accountInfoTest", 123456789, false)
+        val testDataBorsh = Borsh.encodeToByteArray(testData)
+        val programId = SolanaPublicKey.from("11111111111111111111111111111111")
+        val mockedResponse = """
+            {
+                "jsonrpc":"2.0",
+                "result":[{
+                    "account": {
+                        "data":[
+                            "${Base64.encodeToString(testDataBorsh)}",
+                            "base64"
+                        ]
+                        "executable":true,
+                        "lamports":1,
+                        "owner":"11111111111111111111111111111111",
+                        "rentEpoch":1234567890,
+                        "space":${testDataBorsh.size}
+                    },
+                    "pubkey": "11111111111111111111111111111111"
+                }]
+                "id":"requestId"
+            }
+        """.trimIndent()
+
+        val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver(
+            HttpClient(MockEngine {
+                respond(mockedResponse)
+            })
+        ))
+
+        // when
+        val response = rpcClient.getProgramAccounts<TestAccountData>(programId)
+
+        // then
+        assertNull(response.error)
+        assertNotNull(response.result)
+        assertEquals(response.result!!.first()!!.account.owner, programId)
+        assertEquals(testData, response.result!!.first()!!.account.data)
     }
 
     @Test
@@ -302,7 +386,7 @@ class RpcClientTests {
         val response = rpc.sendTransaction(transaction,
             TransactionOptions(
                 commitment = Commitment.CONFIRMED,
-                encoding = Encoding.base58,
+                encoding = Encoding.BASE58,
                 skipPreflight = true
             )
         )
@@ -338,7 +422,7 @@ class RpcClientTests {
         val response = rpc.sendTransaction(transaction,
             TransactionOptions(
                 commitment = Commitment.CONFIRMED,
-                encoding = Encoding.base64,
+                encoding = Encoding.BASE64,
                 skipPreflight = true
             )
         )

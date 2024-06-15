@@ -9,6 +9,7 @@ import com.solana.transaction.Transaction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
@@ -33,7 +34,7 @@ class SolanaRpcClient(
         )
 
     suspend fun <D> getAccountInfo(
-        serializer: KSerializer<D>,
+        deserializer: DeserializationStrategy<D>,
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -41,7 +42,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
-        SolanaAccountSerializer(serializer)
+        SolanaAccountDeserializer(deserializer)
     )
 
     suspend inline fun <reified D> getAccountInfo(
@@ -76,8 +77,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(RentExemptBalanceRequest(size, commitment, requestId), Long.serializer())
 
-    suspend fun <D> getMultipleAccounts(
-        serializer: KSerializer<D>,
+    suspend fun getMultipleAccountsRaw(
         publicKeys: List<SolanaPublicKey>,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -85,7 +85,19 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
-        MultipleAccountsSerializer(serializer)
+        MultipleAccountsDeserializer()
+    )
+
+    suspend fun <D> getMultipleAccounts(
+        deserializer: KSerializer<D>,
+        publicKeys: List<SolanaPublicKey>,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
+        MultipleAccountsDeserializer(deserializer)
     )
 
     suspend inline fun <reified D> getMultipleAccounts(
@@ -96,8 +108,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
 
-    suspend fun <D> getProgramAccounts(
-        serializer: KSerializer<D>,
+    suspend fun getProgramAccountsRaw(
         programId: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -106,7 +117,20 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
-        ProgramAccountsSerializer(serializer)
+        ProgramAccountsDeserializer()
+    )
+
+    suspend fun <D> getProgramAccounts(
+        deserializer: DeserializationStrategy<D>,
+        programId: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        filters: List<ProgramAccountsRequest.Filter>? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
+        ProgramAccountsDeserializer(deserializer)
     )
 
     suspend inline fun <reified D> getProgramAccounts(
@@ -116,9 +140,7 @@ class SolanaRpcClient(
         dataSlice: AccountRequest.DataSlice? = null,
         filters: List<ProgramAccountsRequest.Filter>? = null,
         requestId: String? = null
-    ) = getProgramAccounts<D>(serializer(),
-        programId, commitment, minContextSlot, dataSlice, filters, requestId
-    )
+    ) = getProgramAccounts<D>(serializer(), programId, commitment, minContextSlot, dataSlice, filters, requestId)
 
     suspend fun getSignatureStatuses(
         signatures: List<String>,
@@ -175,7 +197,7 @@ class SolanaRpcClient(
             return@withTimeout Result.success(isActive)
         }
 
-    private suspend inline fun <T> makeRequest(request: RpcRequest, serializer: KSerializer<T>) =
+    private suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
         rpcDriver.makeRequest(request, serializer)
 
     private suspend inline fun <reified T> makeRequest(request: RpcRequest) =

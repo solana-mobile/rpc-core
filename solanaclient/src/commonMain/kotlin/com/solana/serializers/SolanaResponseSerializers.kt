@@ -1,11 +1,8 @@
 package com.solana.serializers
 
-import com.funkatronics.encoders.Base64
-import com.funkatronics.kborsh.BorshDecoder
-import com.funkatronics.kborsh.BorshEncoder
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
+import com.funkatronics.kborsh.Borsh
+import com.solana.rpc.Encoding
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -27,41 +24,71 @@ class SolanaResponseSerializer<R>(dataSerializer: KSerializer<R>)
 @Serializable
 private class WrappedValue<V>(val value: V?)
 
-internal object ByteArrayAsBase64JsonArraySerializer: KSerializer<ByteArray> {
+internal class ByteArrayAsEncodedDataArraySerializer(val encoding: Encoding) : SerializationStrategy<ByteArray> {
     private val delegateSerializer = ListSerializer(String.serializer())
     override val descriptor: SerialDescriptor = delegateSerializer.descriptor
 
     override fun serialize(encoder: Encoder, value: ByteArray) =
-        encoder.encodeSerializableValue(delegateSerializer, listOf(
-            Base64.encodeToString(value), "base64"
-        ))
+        encoder.encodeSerializableValue(
+            delegateSerializer, listOf(encoding.encode(value), encoding.serialName())
+        )
+}
+
+internal object ByteArrayAsEncodedDataArrayDeserializer: DeserializationStrategy<ByteArray> {
+    private val delegateSerializer = ListSerializer(String.serializer())
+    override val descriptor: SerialDescriptor = delegateSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): ByteArray {
         decoder.decodeSerializableValue(delegateSerializer).apply {
-            if (contains("base64")) first { it != "base64" }.apply {
-                return Base64.decode(this)
+            Encoding.entries.forEach { enc ->
+                if (contains(enc.serialName()))
+                    return enc.decode(first { it != enc.serialName() })
             }
-            else throw(SerializationException("Not Base64"))
+            throw(SerializationException("Unknown encoding: ${this.toTypedArray().contentToString()}"))
         }
     }
 }
 
-internal class BorshAsBase64JsonArraySerializer<T>(private val dataSerializer: KSerializer<T>): KSerializer<T?> {
-    private val delegateSerializer = ByteArrayAsBase64JsonArraySerializer
+internal class BorshAsAsEncodedDataArraySerializationStrategy<T>(
+    private val dataSerializer: SerializationStrategy<T>,
+    encoding: Encoding,
+    private val borsh: Borsh = Borsh
+) : SerializationStrategy<T?> {
+    private val delegateSerializer = ByteArrayAsEncodedDataArraySerializer(encoding)
+
     override val descriptor: SerialDescriptor = dataSerializer.descriptor
 
     override fun serialize(encoder: Encoder, value: T?) =
         encoder.encodeSerializableValue(delegateSerializer,
             value?.let {
-                BorshEncoder().apply {
-                    encodeSerializableValue(dataSerializer, value)
-                }.borshEncodedBytes
+                borsh.encodeToByteArray(dataSerializer, value)
             } ?: byteArrayOf()
         )
+}
+
+internal class BorshAsAsEncodedDataArrayDeserializer<T>(private val dataSerializer: DeserializationStrategy<T>,
+                                                        private val borsh: Borsh = Borsh): DeserializationStrategy<T?> {
+    private val delegateDeserializer = ByteArrayAsEncodedDataArrayDeserializer
+
+    override val descriptor: SerialDescriptor = dataSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): T? =
-        decoder.decodeSerializableValue(delegateSerializer).run {
+        decoder.decodeSerializableValue(delegateDeserializer).run {
             if (this.isEmpty()) return null
-            BorshDecoder(this).decodeSerializableValue(dataSerializer)
+            borsh.decodeFromByteArray(dataSerializer, this)
         }
+}
+
+internal class BorshAsBase64JsonArraySerializer<T>(dataSerializer: KSerializer<T>): KSerializer<T?> {
+    private val borsh = Borsh
+    private val delegateSerializer = BorshAsAsEncodedDataArraySerializationStrategy(dataSerializer, Encoding.BASE64, borsh)
+    private val delegateDeserializer = BorshAsAsEncodedDataArrayDeserializer(dataSerializer, borsh)
+
+    override val descriptor: SerialDescriptor = dataSerializer.descriptor
+
+    override fun serialize(encoder: Encoder, value: T?) =
+        encoder.encodeSerializableValue(delegateSerializer, value)
+
+    override fun deserialize(decoder: Decoder): T? =
+        decoder.decodeSerializableValue(delegateDeserializer)
 }

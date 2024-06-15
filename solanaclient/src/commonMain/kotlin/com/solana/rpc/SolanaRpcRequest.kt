@@ -51,7 +51,7 @@ sealed class AccountRequest(
     method,
     params,
     configuration = {
-        put("encoding", Encoding.base64.getEncoding())
+        put("encoding", Encoding.BASE64.serialName())
         configuration?.invoke(this)
     },
     id
@@ -70,7 +70,7 @@ class AccountInfoRequest(
     method = "getAccountInfo",
     params = { add(publicKey.base58()) },
     configuration = {
-        put("commitment", commitment?.value)
+        put("commitment", commitment?.serialName())
         put("minContextSlot", minContextSlot)
         put("dataSlice", buildJsonObject {
             put("length", dataSlice?.length)
@@ -92,7 +92,7 @@ class MultipleAccountsInfoRequest(
         publicKeys.forEach { add(it.base58()) }
     }},
     configuration = {
-        put("commitment", commitment?.value)
+        put("commitment", commitment?.serialName())
         put("minContextSlot", minContextSlot)
         put("dataSlice", buildJsonObject {
             put("length", dataSlice?.length)
@@ -114,7 +114,7 @@ class ProgramAccountsRequest(
     params = { add(program.base58()) },
     configuration = {
         put("withContext", false)
-        put("commitment", commitment?.value)
+        put("commitment", commitment?.serialName())
         put("minContextSlot", minContextSlot)
         put("dataSlice", buildJsonObject {
             put("length", dataSlice?.length)
@@ -139,7 +139,7 @@ class ProgramAccountsRequest(
                 is MemCompare -> {
                     put("offset", offset)
                     put("bytes", bytes)
-                    put("encoding", Encoding.base64.getEncoding())
+                    put("encoding", Encoding.BASE64.serialName())
                 }
             }
         }
@@ -167,7 +167,7 @@ class BalanceRequest(
     method = "getBalance",
     params = { add(address.base58()) },
     configuration = {
-        put("commitment", commitment.value)
+        put("commitment", commitment.serialName())
     },
     requestId
 )
@@ -180,7 +180,7 @@ class LatestBlockhashRequest(
     method = "getLatestBlockhash",
     params = null,
     configuration = {
-        put("commitment", commitment?.value)
+        put("commitment", commitment?.serialName())
         put("minContextSlot", minContextSlot)
     },
     requestId
@@ -193,11 +193,11 @@ class SendTransactionRequest(
 ) : SolanaRpcRequest(
     method = "sendTransaction",
     params = { add(when (options.encoding) {
-        Encoding.base58 -> Base58.encodeToString(transaction.serialize())
-        Encoding.base64 -> Base64.encodeToString(transaction.serialize())
+        Encoding.BASE58 -> Base58.encodeToString(transaction.serialize())
+        Encoding.BASE64 -> Base64.encodeToString(transaction.serialize())
     })},
     configuration = {
-        put("encoding", options.encoding.getEncoding())
+        put("encoding", options.encoding.serialName())
         put("skipPreflight", options.skipPreflight)
         put("preflightCommitment", options.preflightCommitment.toString())
     },
@@ -226,6 +226,6 @@ class RentExemptBalanceRequest(
 ) : SolanaRpcRequest(
     method = "getMinimumBalanceForRentExemption",
     params = { add(size) },
-    configuration = { put("commitment", commitment?.value) },
+    configuration = { put("commitment", commitment?.serialName()) },
     requestId
 )

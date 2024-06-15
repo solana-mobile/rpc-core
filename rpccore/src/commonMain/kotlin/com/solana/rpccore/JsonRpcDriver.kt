@@ -1,15 +1,15 @@
 package com.solana.rpccore
 
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.JsonElement
 
 interface JsonRpcDriver {
-    suspend fun <R> makeRequest(request: RpcRequest, resultSerializer: KSerializer<R>): RpcResponse<R>
+    suspend fun <R> makeRequest(request: RpcRequest, resultSerializer: DeserializationStrategy<R>): RpcResponse<R>
 }
 
 suspend inline fun <reified R> JsonRpcDriver.get(
     request: RpcRequest,
-    serializer: KSerializer<R>
+    serializer: DeserializationStrategy<R>
 ): Result<R?> =
     this.makeRequest(request, serializer).let { response ->
         (response.result)?.let { result ->

@@ -1,7 +1,8 @@
 package com.solana.networking
 
 import com.solana.rpccore.*
-import kotlinx.serialization.KSerializer
+import com.solana.serialization.wrappedSerializer
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 
 class Rpc20Driver(private val url: String,
@@ -12,7 +13,8 @@ class Rpc20Driver(private val url: String,
         ignoreUnknownKeys = true
     })
 
-    override suspend fun <R> makeRequest(request: RpcRequest, resultSerializer: KSerializer<R>): Rpc20Response<R> {
+    override suspend fun <R> makeRequest(request: RpcRequest,
+                                         resultSerializer: DeserializationStrategy<R>): Rpc20Response<R> {
         require(request.jsonrpc == "2.0") { "Request is not a JSON RPC 2.0 request (${request.jsonrpc})"}
         return httpDriver.makeHttpRequest(
             HttpPostRequest(
@@ -28,7 +30,7 @@ class Rpc20Driver(private val url: String,
             )
         ).run {
             try {
-                json.decodeFromString(Rpc20Response.serializer(resultSerializer), this)
+                json.decodeFromString(Rpc20Response.serializer(resultSerializer.wrappedSerializer()), this)
             } catch (e: Exception) {
                 Rpc20Response(error = RpcError(-1, e.message ?: e.toString()))
             }
