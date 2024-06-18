@@ -5,7 +5,8 @@ import com.funkatronics.kborsh.Borsh
 import com.solana.config.TestConfig
 import com.solana.networking.KtorNetworkDriver
 import com.solana.publickey.SolanaPublicKey
-import com.solana.serializers.ByteArrayAsEncodedDataArrayDeserializer
+import com.solana.rpccore.Rpc20Response
+import com.solana.serialization.ByteStringSerializer
 import com.solana.transaction.AccountMeta
 import com.solana.transaction.Message
 import com.solana.transaction.Transaction
@@ -30,7 +31,6 @@ class RpcClientTests {
 
         // when
         val response = rpcClient.getAccountInfo(
-            ByteArrayAsEncodedDataArrayDeserializer,
             SolanaPublicKey.from("11111111111111111111111111111111")
         )
 
@@ -49,7 +49,7 @@ class RpcClientTests {
 
         // when
         val response = rpcClient.getAccountInfo(
-            ByteArrayAsEncodedDataArrayDeserializer,
+            ByteStringSerializer(expectedAccountData.length),
             SolanaPublicKey.from("11111111111111111111111111111111"),
             dataSlice = dataSlice
         )
@@ -112,7 +112,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccountsRaw(
+        val response = rpcClient.getMultipleAccounts(
             listOf(
                 SolanaPublicKey.from("11111111111111111111111111111111"),
                 SolanaPublicKey.from("11111111111111111111111111111111"),
@@ -133,7 +133,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccountsRaw(
+        val response = rpcClient.getMultipleAccounts(
             listOf(
                 SolanaPublicKey.from("NativeLoader1111111111111111111111111111111"),
             ),
@@ -153,7 +153,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getMultipleAccountsRaw(
+        val response = rpcClient.getMultipleAccounts(
             listOf(
                 SolanaPublicKey.from("11111111111111111111111111111111"),
                 SolanaPublicKey.from("11111111111111111111111111111111"),
@@ -220,7 +220,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getProgramAccountsRaw(
+        val response = rpcClient.getProgramAccounts(
             SolanaPublicKey.from("NativeLoader1111111111111111111111111111111")
         )
 
@@ -237,7 +237,7 @@ class RpcClientTests {
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
-        val response = rpcClient.getProgramAccountsRaw(
+        val response = rpcClient.getProgramAccounts(
             SolanaPublicKey(randomPublicKey),
         )
 

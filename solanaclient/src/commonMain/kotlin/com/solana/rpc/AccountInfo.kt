@@ -1,11 +1,9 @@
 package com.solana.rpc
 
 import com.solana.publickey.SolanaPublicKey
-import com.solana.serialization.wrappedSerializer
+import com.solana.serializers.*
 import com.solana.serializers.BorshAsAsEncodedDataArrayDeserializer
-import com.solana.serializers.BorshAsBase64JsonArraySerializer
 import com.solana.serializers.ByteArrayAsEncodedDataArrayDeserializer
-import com.solana.serializers.SolanaResponseDeserializer
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,10 +26,17 @@ data class AccountInfoWithPublicKey<P>(
     @SerialName("pubkey") val publicKey: String
 )
 
+fun SolanaAccountDeserializer() =
+    SolanaResponseDeserializer(
+        AccountInfo.serializer(
+            ByteArrayAsEncodedDataArrayDeserializer.asSerializer()
+        )
+    )
+
 fun <A> SolanaAccountDeserializer(deserializer: DeserializationStrategy<A>) =
     SolanaResponseDeserializer(
         AccountInfo.serializer(
-            BorshAsBase64JsonArraySerializer(deserializer.wrappedSerializer())
+            BorshAsAsEncodedDataArrayDeserializer(deserializer).asSerializer()
         )
     )
 
@@ -39,7 +44,7 @@ fun MultipleAccountsDeserializer() =
     SolanaResponseDeserializer(
         ListSerializer(
             AccountInfo.serializer(
-                ByteArrayAsEncodedDataArrayDeserializer.wrappedSerializer()
+                ByteArrayAsEncodedDataArrayDeserializer.asSerializer()
             ).nullable
         )
     )
@@ -48,7 +53,7 @@ fun <A> MultipleAccountsDeserializer(deserializer: DeserializationStrategy<A>) =
     SolanaResponseDeserializer(
         ListSerializer(
             AccountInfo.serializer(
-                BorshAsAsEncodedDataArrayDeserializer(deserializer).wrappedSerializer()
+                BorshAsAsEncodedDataArrayDeserializer(deserializer).asSerializer()
             ).nullable
         )
     )
@@ -57,7 +62,7 @@ fun ProgramAccountsDeserializer() =
     SolanaResponseDeserializer(
         ListSerializer(
             AccountInfoWithPublicKey.serializer(
-                ByteArrayAsEncodedDataArrayDeserializer.wrappedSerializer()
+                ByteArrayAsEncodedDataArrayDeserializer.asSerializer()
             )
         )
     )
@@ -66,7 +71,7 @@ fun <A> ProgramAccountsDeserializer(deserializer: DeserializationStrategy<A>) =
     SolanaResponseDeserializer(
         ListSerializer(
             AccountInfoWithPublicKey.serializer(
-                BorshAsAsEncodedDataArrayDeserializer(deserializer).wrappedSerializer()
+                BorshAsAsEncodedDataArrayDeserializer(deserializer).asSerializer()
             )
         )
     )

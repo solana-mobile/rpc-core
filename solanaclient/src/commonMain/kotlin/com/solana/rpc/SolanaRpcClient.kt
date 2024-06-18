@@ -33,8 +33,7 @@ class SolanaRpcClient(
             String.serializer()
         )
 
-    suspend fun <D> getAccountInfo(
-        deserializer: DeserializationStrategy<D>,
+    suspend fun getAccountInfo(
         publicKey: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -42,16 +41,8 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
-        SolanaAccountDeserializer(deserializer)
+        SolanaAccountDeserializer()
     )
-
-    suspend inline fun <reified D> getAccountInfo(
-        publicKey: SolanaPublicKey,
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        dataSlice: AccountRequest.DataSlice? = null,
-        requestId: String? = null
-    ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
 
     suspend fun getBalance(
         address: SolanaPublicKey,
@@ -77,7 +68,7 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(RentExemptBalanceRequest(size, commitment, requestId), Long.serializer())
 
-    suspend fun getMultipleAccountsRaw(
+    suspend fun getMultipleAccounts(
         publicKeys: List<SolanaPublicKey>,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -88,27 +79,7 @@ class SolanaRpcClient(
         MultipleAccountsDeserializer()
     )
 
-    suspend fun <D> getMultipleAccounts(
-        deserializer: KSerializer<D>,
-        publicKeys: List<SolanaPublicKey>,
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        dataSlice: AccountRequest.DataSlice? = null,
-        requestId: String? = null
-    ) = makeRequest(
-        MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
-        MultipleAccountsDeserializer(deserializer)
-    )
-
-    suspend inline fun <reified D> getMultipleAccounts(
-        publicKeys: List<SolanaPublicKey>,
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        dataSlice: AccountRequest.DataSlice? = null,
-        requestId: String? = null
-    ) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
-
-    suspend fun getProgramAccountsRaw(
+    suspend fun getProgramAccounts(
         programId: SolanaPublicKey,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
@@ -119,28 +90,6 @@ class SolanaRpcClient(
         ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
         ProgramAccountsDeserializer()
     )
-
-    suspend fun <D> getProgramAccounts(
-        deserializer: DeserializationStrategy<D>,
-        programId: SolanaPublicKey,
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        dataSlice: AccountRequest.DataSlice? = null,
-        filters: List<ProgramAccountsRequest.Filter>? = null,
-        requestId: String? = null
-    ) = makeRequest(
-        ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
-        ProgramAccountsDeserializer(deserializer)
-    )
-
-    suspend inline fun <reified D> getProgramAccounts(
-        programId: SolanaPublicKey,
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        dataSlice: AccountRequest.DataSlice? = null,
-        filters: List<ProgramAccountsRequest.Filter>? = null,
-        requestId: String? = null
-    ) = getProgramAccounts<D>(serializer(), programId, commitment, minContextSlot, dataSlice, filters, requestId)
 
     suspend fun getSignatureStatuses(
         signatures: List<String>,
@@ -197,9 +146,71 @@ class SolanaRpcClient(
             return@withTimeout Result.success(isActive)
         }
 
-    private suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
+    internal suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
         rpcDriver.makeRequest(request, serializer)
 
-    private suspend inline fun <reified T> makeRequest(request: RpcRequest) =
+    internal suspend inline fun <reified T> makeRequest(request: RpcRequest) =
         rpcDriver.makeRequest<T>(request, serializer())
 }
+
+suspend fun <D> SolanaRpcClient.getAccountInfo(
+    deserializer: DeserializationStrategy<D>,
+    publicKey: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = makeRequest(
+    AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
+    SolanaAccountDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getAccountInfo(
+    publicKey: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
+
+suspend fun <D> SolanaRpcClient.getMultipleAccounts(
+    deserializer: KSerializer<D>,
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = makeRequest(
+    MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
+    MultipleAccountsDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getMultipleAccounts(
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
+
+suspend fun <D> SolanaRpcClient.getProgramAccounts(
+    deserializer: DeserializationStrategy<D>,
+    programId: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    filters: List<ProgramAccountsRequest.Filter>? = null,
+    requestId: String? = null
+) = makeRequest(
+    ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
+    ProgramAccountsDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getProgramAccounts(
+    programId: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    filters: List<ProgramAccountsRequest.Filter>? = null,
+    requestId: String? = null
+) = getProgramAccounts<D>(serializer(), programId, commitment, minContextSlot, dataSlice, filters, requestId)

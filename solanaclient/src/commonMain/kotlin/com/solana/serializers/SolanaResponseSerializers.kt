@@ -3,7 +3,6 @@ package com.solana.serializers
 import com.funkatronics.kborsh.Borsh
 import com.solana.rpc.Encoding
 import com.solana.rpc.SolanaResponse
-import com.solana.serialization.wrappedSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -13,7 +12,7 @@ import kotlinx.serialization.encoding.Encoder
 
 class SolanaResponseDeserializer<R>(dataSerializer: DeserializationStrategy<R>)
     : DeserializationStrategy<R?> {
-    private val serializer = SolanaResponse.serializer(dataSerializer.wrappedSerializer())
+    private val serializer = SolanaResponse.serializer(dataSerializer.asSerializer())
     override val descriptor: SerialDescriptor = serializer.descriptor
 
     override fun deserialize(decoder: Decoder): R? =
