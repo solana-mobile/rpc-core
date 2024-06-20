@@ -9,6 +9,7 @@ vanniktechMavenPublish = "0.25.3"
 
 [libraries]
 crypto = { group = "com.diglol.crypto", name = "crypto", version = "0.1.5" }
+kborsh = { group = "io.github.funkatronics", name = "kborsh", version = "0.1.0" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
@@ -16,8 +17,8 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
-multimult = { group = "io.github.funkatronics", name = "multimult", version = "0.2.2" }
-web3-solana = { group = "com.solanamobile", name = "web3-solana", version = "0.3.0-beta3" }
+multimult = { group = "io.github.funkatronics", name = "multimult", version = "0.2.3" }
+web3-solana = { group = "com.solanamobile", name = "web3-solana", version = "0.3.0-beta4" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

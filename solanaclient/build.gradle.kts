@@ -34,6 +34,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.web3.solana)
+                implementation(libs.kborsh)
                 implementation(libs.multimult)
             }
         }
@@ -44,6 +45,7 @@ kotlin {
                 implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.ktor.client.mock)
                 implementation(libs.crypto)
             }
         }

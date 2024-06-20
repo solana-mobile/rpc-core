@@ -1,29 +1,24 @@
 package com.solana.rpc
 
-import com.funkatronics.encoders.Base58
-import com.funkatronics.encoders.Base64
 import com.solana.networking.HttpNetworkDriver
 import com.solana.networking.Rpc20Driver
 import com.solana.publickey.SolanaPublicKey
-import com.solana.rpccore.JsonRpc20Request
 import com.solana.rpccore.RpcRequest
-import com.solana.serializers.SolanaResponseSerializer
+import com.solana.serializers.SolanaResponseDeserializer
 import com.solana.transaction.Transaction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
 import kotlin.math.pow
-import kotlin.random.Random
 
 class SolanaRpcClient(
-    val rpcDriver: Rpc20Driver,
+    private val rpcDriver: Rpc20Driver,
     private val defaultTransactionOptions: TransactionOptions = TransactionOptions()
 ) {
 
@@ -32,17 +27,22 @@ class SolanaRpcClient(
         defaultTransactionOptions: TransactionOptions = TransactionOptions()
     ) : this(Rpc20Driver(url, networkDriver), defaultTransactionOptions)
 
-    suspend inline fun <T> makeRequest(request: RpcRequest, serializer: KSerializer<T>) =
-        rpcDriver.makeRequest(request, serializer)
-
-    suspend inline fun <reified T> makeRequest(request: RpcRequest) =
-        rpcDriver.makeRequest<T>(request, serializer())
-
     suspend fun requestAirdrop(address: SolanaPublicKey, amountSol: Float, requestId: String? = null) =
         makeRequest(
             AirdropRequest(address, (amountSol * 10f.pow(9)).toLong(), requestId),
             String.serializer()
         )
+
+    suspend fun getAccountInfo(
+        publicKey: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
+        SolanaAccountDeserializer()
+    )
 
     suspend fun getBalance(
         address: SolanaPublicKey,
@@ -50,7 +50,16 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(
         BalanceRequest(address, commitment, requestId),
-        SolanaResponseSerializer(Long.serializer())
+        SolanaResponseDeserializer(Long.serializer())
+    )
+
+    suspend fun getLatestBlockhash(
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        LatestBlockhashRequest(commitment, minContextSlot, requestId),
+        SolanaResponseDeserializer(BlockhashResponse.serializer())
     )
 
     suspend fun getMinBalanceForRentExemption(
@@ -59,13 +68,36 @@ class SolanaRpcClient(
         requestId: String? = null
     ) = makeRequest(RentExemptBalanceRequest(size, commitment, requestId), Long.serializer())
 
-    suspend fun getLatestBlockhash(
+    suspend fun getMultipleAccounts(
+        publicKeys: List<SolanaPublicKey>,
         commitment: Commitment? = null,
         minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
         requestId: String? = null
     ) = makeRequest(
-        LatestBlockhashRequest(commitment, minContextSlot, requestId),
-        SolanaResponseSerializer(BlockhashResponse.serializer())
+        MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
+        MultipleAccountsDeserializer()
+    )
+
+    suspend fun getProgramAccounts(
+        programId: SolanaPublicKey,
+        commitment: Commitment? = null,
+        minContextSlot: Long? = null,
+        dataSlice: AccountRequest.DataSlice? = null,
+        filters: List<ProgramAccountsRequest.Filter>? = null,
+        requestId: String? = null
+    ) = makeRequest(
+        ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
+        ProgramAccountsDeserializer()
+    )
+
+    suspend fun getSignatureStatuses(
+        signatures: List<String>,
+        searchTransactionHistory: Boolean = false,
+        requestId: String? = null
+    ) = makeRequest(
+        SignatureStatusesRequest(signatures, searchTransactionHistory, requestId),
+        SolanaResponseDeserializer(ListSerializer(SignatureStatus.serializer().nullable))
     )
 
     suspend fun sendTransaction(
@@ -81,20 +113,10 @@ class SolanaRpcClient(
         result?.let { confirmTransaction(it, options) }
     }
 
-    suspend fun getSignatureStatuses(
-        signatures: List<String>,
-        searchTransactionHistory: Boolean = false,
-        requestId: String? = null
-    ) = makeRequest(
-        SignatureStatusesRequest(signatures, searchTransactionHistory, requestId),
-        SolanaResponseSerializer(ListSerializer(SignatureStatus.serializer().nullable))
-    )
-
     suspend fun confirmTransaction(
         transactionSignature: String,
         options: TransactionOptions = defaultTransactionOptions
-    ): Result<Boolean> =
-        withTimeout(options.timeout) {
+    ): Result<Boolean> = withTimeout(options.timeout) {
             val requiredCommitment = options.commitment.ordinal
 
             suspend fun confirmationStatus() =
@@ -124,128 +146,71 @@ class SolanaRpcClient(
             return@withTimeout Result.success(isActive)
         }
 
-    //region Requests
-    sealed class SolanaRpcRequest(
-        method: String,
-        params: JsonElement?,
-        id: String? = null
-    ) : JsonRpc20Request(
-        method,
-        params,
-        id ?: "$method-${Random.nextInt(100000000, 999999999)}"
-    )
+    internal suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
+        rpcDriver.makeRequest(request, serializer)
 
-    class AirdropRequest(
-        address: SolanaPublicKey,
-        lamports: Long,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-        method = "requestAirdrop",
-        params = buildJsonArray {
-            add(address.base58())
-            add(lamports)
-        },
-        id = requestId
-    )
-
-    class BalanceRequest(
-        address: SolanaPublicKey,
-        commitment: Commitment = Commitment.CONFIRMED,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-        method = "getBalance",
-        params = buildJsonArray {
-            add(address.base58())
-            addJsonObject {
-                put("commitment", commitment.value)
-            }
-        },
-        requestId
-    )
-
-    class LatestBlockhashRequest(
-        commitment: Commitment? = null,
-        minContextSlot: Long? = null,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-        method = "getLatestBlockhash",
-        params = buildJsonArray {
-            if (commitment != null || minContextSlot != null) {
-                addJsonObject {
-                    commitment?.let { put("commitment", commitment.value) }
-                    minContextSlot?.let { put("minContextSlot", minContextSlot) }
-                }
-            }
-        },
-        requestId
-    )
-
-    class SendTransactionRequest(
-        transaction: Transaction,
-        options: TransactionOptions,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-            method = "sendTransaction",
-            params = buildJsonArray {
-                add(when (options.encoding) {
-                    Encoding.base58 -> Base58.encodeToString(transaction.serialize())
-                    Encoding.base64 -> Base64.encodeToString(transaction.serialize())
-                })
-                addJsonObject {
-                    put("encoding", options.encoding.getEncoding())
-                    put("skipPreflight", options.skipPreflight)
-                    put("preflightCommitment", options.preflightCommitment.toString())
-                }
-            },
-            requestId
-        )
-
-    class SignatureStatusesRequest(
-        transactionIds: List<String>,
-        searchTransactionHistory: Boolean = false,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-        method = "getSignatureStatuses",
-        params = buildJsonArray {
-            addJsonArray { transactionIds.forEach { add(it) } }
-            addJsonObject {
-                put("searchTransactionHistory", searchTransactionHistory)
-            }
-        },
-        requestId
-    )
-
-    class RentExemptBalanceRequest(
-        size: Long,
-        commitment: Commitment? = null,
-        requestId: String? = null
-    ) : SolanaRpcRequest(
-        method = "getMinimumBalanceForRentExemption",
-        params = buildJsonArray {
-            add(size)
-            commitment?.let {
-                addJsonObject {
-                    put("commitment", commitment.value)
-                }
-            }
-        },
-        requestId
-    )
-    //endregion
-
-    //region Responses
-    @Serializable
-    class BlockhashResponse(
-        val blockhash: String,
-        val lastValidBlockHeight: Long
-    )
-
-    @Serializable
-    data class SignatureStatus(
-        val slot: Long,
-        val confirmations: Long?,
-        var err: JsonObject?,
-        var confirmationStatus: Commitment?
-    )
-    //endregion
+    internal suspend inline fun <reified T> makeRequest(request: RpcRequest) =
+        rpcDriver.makeRequest<T>(request, serializer())
 }
+
+suspend fun <D> SolanaRpcClient.getAccountInfo(
+    deserializer: DeserializationStrategy<D>,
+    publicKey: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = makeRequest(
+    AccountInfoRequest(publicKey, commitment, minContextSlot, dataSlice, requestId),
+    SolanaAccountDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getAccountInfo(
+    publicKey: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
+
+suspend fun <D> SolanaRpcClient.getMultipleAccounts(
+    deserializer: KSerializer<D>,
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = makeRequest(
+    MultipleAccountsInfoRequest(publicKeys, commitment, minContextSlot, dataSlice, requestId),
+    MultipleAccountsDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getMultipleAccounts(
+    publicKeys: List<SolanaPublicKey>,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = getMultipleAccounts<D>(serializer(), publicKeys, commitment, minContextSlot, dataSlice, requestId)
+
+suspend fun <D> SolanaRpcClient.getProgramAccounts(
+    deserializer: DeserializationStrategy<D>,
+    programId: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    filters: List<ProgramAccountsRequest.Filter>? = null,
+    requestId: String? = null
+) = makeRequest(
+    ProgramAccountsRequest(programId, commitment, minContextSlot, dataSlice, filters, requestId),
+    ProgramAccountsDeserializer(deserializer)
+)
+
+suspend inline fun <reified D> SolanaRpcClient.getProgramAccounts(
+    programId: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    filters: List<ProgramAccountsRequest.Filter>? = null,
+    requestId: String? = null
+) = getProgramAccounts<D>(serializer(), programId, commitment, minContextSlot, dataSlice, filters, requestId)
