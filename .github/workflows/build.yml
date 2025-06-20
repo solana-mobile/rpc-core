@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        solana: ["1.18.14"]
+        solana: ["1.18.14", "stable"]
 
     steps:
       - name: Checkout
