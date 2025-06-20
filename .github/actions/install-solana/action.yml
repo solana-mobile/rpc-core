@@ -1,13 +1,29 @@
-name: Install Solana
+name: Install Local Solana Validator
+description: Installs and caches the specified solana validator version.
 
 inputs:
   solana_version:
-    description: Version of Solana to install
+    description: Version of Solana to install. Numeric version like "1.2.3" are supported, as well as "stable" for the latest release
     required: true
 
 runs:
   using: "composite"
   steps:
+    - name: Determine Solana Version
+      id: determine-version
+      run: |
+        if [ "${{ inputs.solana_version }}" = "stable" ]; then
+          echo "Resolving stable version from GitHub API..."
+          resolved=$(curl -s https://api.github.com/repos/anza-xyz/agave/releases/latest | grep -m 1 '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          resolved="${resolved#v}"  # Remove leading 'v' if present
+          echo "Using resolved version: $resolved"
+        else
+          resolved="${{ inputs.solana_version }}"
+          echo "Using direct version: $resolved"
+        fi
+        echo "resolved_version=$resolved" >> $GITHUB_OUTPUT
+      shell: bash
+
     - name: Cache Solana Install
       if: ${{ !env.ACT }}
       id: cache-solana-install
