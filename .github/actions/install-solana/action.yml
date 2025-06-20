@@ -18,9 +18,10 @@ runs:
           tag_line=$(echo "$release_json" | grep -m 1 '"tag_name"')
           echo "$tag_line"
           release=$( echo "$release_json" | grep -m 1 '"tag_name"' | sed -ne 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+          release="${release#v}"
           echo "Using resolved version: $release"
         else
-          release="v${{ inputs.solana_version }}"
+          release="${{ inputs.solana_version }}"
           echo "Using direct version: $release"
         fi
         
@@ -45,7 +46,7 @@ runs:
     - name: Install Solana
       if: ${{ !env.ACT }} && steps.cache-solana-install.cache-hit != 'true'
       run: |
-        sh -c "$(curl -sSfL https://release.anza.xyz/${{ steps.get-solana-version.outputs.resolved_version }}/install)"
+        sh -c "$(curl -sSfL https://release.anza.xyz/v${{ steps.get-solana-version.outputs.resolved_version }}/install)"
       shell: bash
 
     - name: Set Active Solana Version
