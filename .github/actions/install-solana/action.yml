@@ -25,9 +25,9 @@ runs:
           echo "Using direct version: $release"
         fi
         
-        if [ -z "$resolved" ]; then
-          echo "❌ Failed to resolve version from API response:"
-          echo "$json"
+        if [ -z "$release" ]; then
+          echo "❌ Failed to resolve solana version:"
+          echo "${{ inputs.solana_version }}"
           exit 1
         fi
         
