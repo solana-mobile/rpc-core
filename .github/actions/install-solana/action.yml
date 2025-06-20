@@ -15,7 +15,7 @@ runs:
         if [ "${{ inputs.solana_version }}" = "stable" ]; then
           echo "Resolving stable version from GitHub API..."
           release_json=$(curl -s https://api.github.com/repos/anza-xyz/agave/releases/latest)
-          release=$( echo $"release_json" | grep -m 1 '"tag_name"' | sed -ne 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+          release=$( echo "$release_json" | grep -m 1 '"tag_name"' | sed -ne 's/.*"tag_name": "\([^"]*\)".*/\1/p')
           echo "Using resolved version: $release"
         else
           release="v${{ inputs.solana_version }}"
