@@ -12,9 +12,8 @@ jobs:
   build:
     runs-on: macos-latest
     strategy:
-      fail-fast: false
       matrix:
-        solana: ["1.18.14", "stable"]
+        solana: ["stable"]
 
     steps:
       - name: Checkout
