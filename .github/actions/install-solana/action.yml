@@ -41,7 +41,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: "$HOME/.local/share/solana/install/releases/${{ steps.get-solana-version.outputs.resolved_version }}"
-        key: ${{ runner.os }}-Solana-${{ steps.get-solana-version.outputs.resolved_version }}
+        key: ${{ runner.os }}-Solana-v${{ steps.get-solana-version.outputs.resolved_version }}
 
     - name: Install Solana
       if: ${{ !env.ACT }} && steps.cache-solana-install.cache-hit != 'true'
