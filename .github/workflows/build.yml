@@ -11,9 +11,12 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      contents: read
     strategy:
+      fail-fast: false
       matrix:
-        solana: ["1.18.14"]
+        solana: ["1.18.14", "stable"]
 
     steps:
       - name: Checkout
@@ -32,6 +35,7 @@ jobs:
       - name: Install Solana
         uses: ./.github/actions/install-solana
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           solana_version: ${{ matrix.solana }}
 
       - name: Start local validator
@@ -41,11 +45,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Test
-        run: ./gradlew build -PlocalValidator=true
+        run: ./gradlew build -PlocalValidator=true "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
 
       - name: Save Test Reports
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: '**/build/reports'

@@ -7,13 +7,8 @@ val artifactIdPrefix: String by project
 val moduleArtifactId = "$artifactIdPrefix-ktordriver"
 
 kotlin {
-    jvm {
-        jvmToolchain(11)
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
+    jvmToolchain(11)
+    jvm()
     listOf(
         iosX64(),
         iosArm64(),
