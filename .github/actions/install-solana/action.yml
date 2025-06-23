@@ -14,9 +14,12 @@ runs:
       run: |
         if [ "${{ inputs.solana_version }}" = "stable" ]; then
           echo "Resolving stable version from GitHub API..."
-          release_json=$(curl -s --retry 3 --retry-delay 2 --retry-connrefused --retry-all-errors https://api.github.com/repos/anza-xyz/agave/releases/latest)
-          tag_line=$(echo "$release_json" | grep -m 1 '"tag_name"')
-          echo "$tag_line"
+          release_json=$(\
+            curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/anza-xyz/agave/releases/latest \
+          )
           release=$( echo "$release_json" | grep -m 1 '"tag_name"' | sed -ne 's/.*"tag_name": "\([^"]*\)".*/\1/p')
           release="${release#v}"
           echo "Using resolved version: $release"
