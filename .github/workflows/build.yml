@@ -12,8 +12,9 @@ jobs:
   build:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
-        solana: ["stable"]
+        solana: ["1.18.14", "stable"]
 
     steps:
       - name: Checkout
@@ -41,7 +42,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Test
-        run: ./gradlew build -PlocalValidator=true
+        run: ./gradlew build -PlocalValidator=true "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
 
       - name: Save Test Reports
         if: failure()
