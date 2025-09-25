@@ -8,10 +8,10 @@ kotlinSerialization = "1.8.1"
 vanniktechMavenPublish = "0.34.0"
 
 crypto = "0.1.5"
-kborsh = "0.1.1"
-multimult = "0.2.4"
+kborsh = "0.1.2"
+multimult = "0.2.5"
 okhttp = "5.0.0-alpha.16"
-web3 = "0.3.0-beta5"
+web3 = "0.3.0-beta6"
 
 [libraries]
 crypto = { group = "com.diglol.crypto", name = "crypto", version.ref = "crypto" }
