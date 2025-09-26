@@ -103,6 +103,7 @@ class RpcClientTests {
         assertNotNull(response.result)
         assertEquals(response.result!!.owner, ownerPubkey)
         assertEquals(testData, response.result!!.data)
+        assertEquals(testDataBorsh.size, response.result!!.space!!.toInt())
     }
 
     @Test
