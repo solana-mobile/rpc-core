@@ -17,7 +17,7 @@ data class AccountInfo<D>(
     val lamports: ULong,
     val owner: SolanaPublicKey,
     val rentEpoch: ULong,
-    val size: ULong? = null
+    val space: ULong? = null
 )
 
 @Serializable
