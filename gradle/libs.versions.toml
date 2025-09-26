@@ -11,7 +11,7 @@ crypto = "0.1.5"
 kborsh = "0.1.2"
 multimult = "0.2.5"
 okhttp = "5.1.0"
-web3 = "0.3.0-beta6"
+web3 = "0.3.0"
 
 [libraries]
 crypto = { group = "com.diglol.crypto", name = "crypto", version.ref = "crypto" }
