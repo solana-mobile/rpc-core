@@ -50,7 +50,7 @@ val rpcResponse = rpcDriver.makeRequest(rpcRequest, JsonElement.serializer())
 <!-- TAG_DEPENDENCIES -->
 [badge-kotlin]: https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin
 
-[url-latest-release]: https://github.com/solana-mobile/web3-core/releases/latest
+[url-latest-release]: https://github.com/solana-mobile/rpc-core/releases/latest
 [url-license]: https://www.apache.org/licenses/LICENSE-2.0.txt
 [url-kotlin]: https://kotlinlang.org
 
