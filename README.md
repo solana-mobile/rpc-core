@@ -1,6 +1,10 @@
 # RpcCore
 Multiplatform JSON RPC Library using Kotlin Serialization
 
+[![badge-latest-release]][url-latest-release]
+[![badge-license]][url-license]
+[![badge-kotlin]][url-kotlin]
+
 ## Usage
 
 ### Network Driver
@@ -39,6 +43,15 @@ val rpcRequest = JsonRpc20Request(requestId, requestParamaters, requestId)
 val rpcResponse = rpcDriver.makeRequest(rpcRequest, JsonElement.serializer())
 ```
 
+<!-- TAG_VERSION -->
+[badge-latest-release]: https://img.shields.io/badge/dynamic/json.svg?url=https://api.github.com/repos/solana-mobile/rpc-core/releases/latest&query=tag_name&label=release&color=blue
+[badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
+<!-- TAG_DEPENDENCIES -->
+[badge-kotlin]: https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin
+
+[url-latest-release]: https://github.com/solana-mobile/web3-core/releases/latest
+[url-license]: https://www.apache.org/licenses/LICENSE-2.0.txt
+[url-kotlin]: https://kotlinlang.org
 
 
