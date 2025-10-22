@@ -22,8 +22,20 @@ kotlin {
         }
     }
     js {
-        browser()
-        nodejs()
+        nodejs {
+            testTask {
+                useMocha { // extend mocha promise timeout to 15 seconds
+                    timeout = "15000"
+                }
+            }
+        }
+        browser {
+            testTask {
+                useMocha { // extend mocha promise timeout to 15 seconds
+                    timeout = "15000"
+                }
+            }
+        }
         outputModuleName = moduleArtifactId
     }
 
