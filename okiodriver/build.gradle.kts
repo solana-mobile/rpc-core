@@ -9,22 +9,6 @@ val moduleArtifactId = "$artifactIdPrefix-okiodriver"
 kotlin {
     jvmToolchain(11)
     jvm()
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-        macosX64(),
-        macosArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = moduleArtifactId
-        }
-    }
-    js {
-        browser()
-        nodejs()
-        outputModuleName = moduleArtifactId
-    }
 
     sourceSets {
         val commonMain by getting {
