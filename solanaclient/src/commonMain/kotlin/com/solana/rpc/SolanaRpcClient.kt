@@ -146,6 +146,15 @@ class SolanaRpcClient(
             return@withTimeout Result.success(isActive)
         }
 
+    suspend fun getTransaction(
+        transactionSignature: String,
+        commitment: Commitment = Commitment.FINALIZED,
+        maxSupportedTransactionVersion: Long = 0
+    ) = makeRequest(
+        GetTransactionRequest(transactionSignature, commitment, maxSupportedTransactionVersion),
+        TransactionDetails.serializer().nullable
+    )
+
     internal suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
         rpcDriver.makeRequest(request, serializer)
 

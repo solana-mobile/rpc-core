@@ -1,6 +1,7 @@
 package com.solana.rpc
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
@@ -21,4 +22,13 @@ data class SignatureStatus(
     val confirmations: Long?,
     var err: JsonObject?,
     var confirmationStatus: Commitment?
+)
+
+@Serializable
+data class TransactionDetails(
+    val blockTime: Long,
+    val meta: TransactionMetadata,
+    val slot: ULong,
+    val transaction: JsonParsedTransaction,
+    val version: JsonElement? = null
 )

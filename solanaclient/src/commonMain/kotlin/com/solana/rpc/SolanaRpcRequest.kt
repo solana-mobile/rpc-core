@@ -229,3 +229,19 @@ class RentExemptBalanceRequest(
     configuration = { put("commitment", commitment?.serialName()) },
     requestId
 )
+
+class GetTransactionRequest(
+    signature: String,
+    commitment: Commitment = Commitment.FINALIZED,
+    maxSupportedTransactionVersion: Long = 0,
+    requestId: String? = null
+) : SolanaRpcRequest(
+    method = "getTransaction",
+    params = { add(signature) },
+    configuration = {
+        put("commitment", commitment.serialName())
+        put("maxSupportedTransactionVersion", maxSupportedTransactionVersion)
+        put("encoding", "jsonParsed")
+    },
+    requestId
+)
