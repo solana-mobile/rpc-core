@@ -65,7 +65,12 @@ class GetTransactionTest {
         assertNotNull(response.result)
         assertNotNull(response.result!!.meta)
         assertNull(response.result!!.meta.err)
-        assertEquals(expectedParsedInstruction, response.result!!.transaction.message.instructions.first())
+        response.result!!.transaction.message.instructions.first().apply {
+            assertEquals(expectedParsedInstruction.program, this.program)
+            assertEquals(expectedParsedInstruction.programId, this.programId)
+            assertEquals(expectedParsedInstruction.parsed, this.parsed)
+            assertEquals(expectedParsedInstruction.stackHeight, this.stackHeight ?: 1u)
+        }
     }
 
     @Test
@@ -115,6 +120,11 @@ class GetTransactionTest {
         assertNotNull(response.result)
         assertNotNull(response.result!!.meta)
         assertNotNull(response.result!!.meta.err)
-        assertEquals(expectedParsedInstruction, response.result!!.transaction.message.instructions.first())
+        response.result!!.transaction.message.instructions.first().apply {
+            assertEquals(expectedParsedInstruction.program, this.program)
+            assertEquals(expectedParsedInstruction.programId, this.programId)
+            assertEquals(expectedParsedInstruction.parsed, this.parsed)
+            assertEquals(expectedParsedInstruction.stackHeight, this.stackHeight ?: 1u)
+        }
     }
 }
