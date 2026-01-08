@@ -36,9 +36,11 @@ class SimulateTransactionTests {
             .addInstruction(buildMemoTransaction(pubkey, message))
             .build().toUnsignedTransaction()
 
-        // delay to allow commitment
+        // need to wait for airdrop commitment or simulation will fail
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            delay(2000)
+            assertNull(airdropResponse.error)
+            assertNotNull(airdropResponse.result)
+            rpc.confirmTransaction(airdropResponse.result!!, TransactionOptions(Commitment.CONFIRMED))
         }
 
         val response = rpc.simulateTransaction(transaction,
@@ -53,8 +55,6 @@ class SimulateTransactionTests {
         )
 
         // then
-        assertNull(airdropResponse.error)
-        assertNotNull(airdropResponse.result)
         assertNull(response.error)
         assertNotNull(response.result)
         assertNotNull(response.result!!.logs)
@@ -78,9 +78,11 @@ class SimulateTransactionTests {
             .addInstruction(buildMemoTransaction(pubkey, message))
             .build().toUnsignedTransaction()
 
-        // delay to allow commitment
+        // need to wait for airdrop commitment or simulation will fail
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            delay(2000)
+            assertNull(airdropResponse.error)
+            assertNotNull(airdropResponse.result)
+            rpc.confirmTransaction(airdropResponse.result!!, TransactionOptions(Commitment.CONFIRMED))
         }
 
         val response = rpc.simulateTransaction(transaction,
@@ -95,8 +97,6 @@ class SimulateTransactionTests {
         )
 
         // then
-        assertNull(airdropResponse.error)
-        assertNotNull(airdropResponse.result)
         assertNull(response.error)
         assertNotNull(response.result)
         assertNotNull(response.result!!.logs)
@@ -115,9 +115,11 @@ class SimulateTransactionTests {
         // when
         val airdropResponse = rpc.requestAirdrop(pubkey, 0.1f)
 
-        // delay to allow commitment
+        // need to wait for airdrop commitment or simulation will fail
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            delay(2000)
+            assertNull(airdropResponse.error)
+            assertNotNull(airdropResponse.result)
+            rpc.confirmTransaction(airdropResponse.result!!, TransactionOptions(Commitment.CONFIRMED))
         }
 
         val blockhashResponse = rpc.getLatestBlockhash()
@@ -142,8 +144,6 @@ class SimulateTransactionTests {
         )
 
         // then
-        assertNull(airdropResponse.error)
-        assertNotNull(airdropResponse.result)
         assertNull(response.error)
         assertNotNull(response.result)
         assertNotNull(response.result!!.logs)
@@ -161,9 +161,11 @@ class SimulateTransactionTests {
         // when
         val airdropResponse = rpc.requestAirdrop(pubkey, 0.1f)
 
-        // delay to allow commitment
+        // need to wait for airdrop commitment or simulation will fail
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            delay(2000)
+            assertNull(airdropResponse.error)
+            assertNotNull(airdropResponse.result)
+            rpc.confirmTransaction(airdropResponse.result!!, TransactionOptions(Commitment.CONFIRMED))
         }
 
         val blockhashResponse = rpc.getLatestBlockhash()
@@ -185,8 +187,6 @@ class SimulateTransactionTests {
         )
 
         // then
-        assertNull(airdropResponse.error)
-        assertNotNull(airdropResponse.result)
         assertNull(response.error)
         assertNotNull(response.result)
         assertNotNull(response.result!!.logs)
