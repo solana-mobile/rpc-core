@@ -1,6 +1,7 @@
 package com.solana.rpc
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
@@ -21,4 +22,16 @@ data class SignatureStatus(
     val confirmations: Long?,
     var err: JsonObject?,
     var confirmationStatus: Commitment?
+)
+
+@Serializable
+data class SimulationResult(
+    val accounts: List<AccountInfo<List<String>>>? = null,
+    val err: JsonElement? = null,
+    val innerInstructions: JsonObject? = null,
+    val loadedAccountsDataSize: UInt? = null,
+    val logs: List<String>? = null,
+    val replacementBlockhash: BlockhashResponse? = null,
+    val returnData: JsonObject? = null,
+    val unitsConsumed: ULong? = null,
 )
