@@ -26,7 +26,7 @@ data class SignatureStatus(
 
 @Serializable
 data class SimulationResult(
-    val accounts: List<AccountInfo<List<String>>>? = null,
+    val accounts: List<AccountInfo<List<String>>?>? = null,
     val err: JsonElement? = null,
     val innerInstructions: JsonObject? = null,
     val loadedAccountsDataSize: UInt? = null,
