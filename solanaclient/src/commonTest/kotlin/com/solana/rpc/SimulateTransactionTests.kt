@@ -71,12 +71,6 @@ class SimulateTransactionTests {
 
         // when
         val airdropResponse = rpc.requestAirdrop(pubkey, 0.1f)
-        val blockhashResponse = rpc.getLatestBlockhash()
-
-        val transaction = Message.Builder()
-            .setRecentBlockhash(blockhashResponse.result!!.blockhash)
-            .addInstruction(buildMemoTransaction(pubkey, message))
-            .build().toUnsignedTransaction()
 
         // need to wait for airdrop commitment or simulation will fail
         withContext(Dispatchers.Default.limitedParallelism(1)) {
@@ -84,6 +78,11 @@ class SimulateTransactionTests {
             assertNotNull(airdropResponse.result)
             rpc.confirmTransaction(airdropResponse.result!!, TransactionOptions(Commitment.CONFIRMED))
         }
+
+        val transaction = Message.Builder()
+            .setRecentBlockhash(SolanaPublicKey.from("DR3yhKma9ZmquG81xX5cR129p88cS4vkMtWmtTvS1aDt"))
+            .addInstruction(buildMemoTransaction(pubkey, message))
+            .build().toUnsignedTransaction()
 
         val response = rpc.simulateTransaction(transaction,
             commitment = Commitment.CONFIRMED,
