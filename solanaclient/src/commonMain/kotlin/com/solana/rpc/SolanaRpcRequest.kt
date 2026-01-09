@@ -5,6 +5,7 @@ import com.funkatronics.encoders.Base64
 import com.funkatronics.hash.Sha256
 import com.solana.publickey.SolanaPublicKey
 import com.solana.rpccore.JsonRpc20Request
+import com.solana.transaction.Message
 import com.solana.transaction.Transaction
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
@@ -244,6 +245,21 @@ class GetTransactionRequest(
         put("commitment", commitment.serialName())
         put("maxSupportedTransactionVersion", maxSupportedTransactionVersion)
         put("encoding", "jsonParsed")
+    },
+    requestId
+)
+
+class GetFeeForMessageRequest(
+    message: Message,
+    commitment: Commitment = Commitment.PROCESSED,
+    minContextSlot: Long? = null,
+    requestId: String? = null
+) : SolanaRpcRequest(
+    method = "getFeeForMessage",
+    params = { add(message.serialize().run { Base64.encodeToString(this) }) },
+    configuration = {
+        put("commitment", commitment.serialName())
+        put("minContextSlot", minContextSlot)
     },
     requestId
 )

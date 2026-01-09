@@ -6,6 +6,7 @@ import com.solana.publickey.SolanaPublicKey
 import com.solana.rpccore.RpcRequest
 import com.solana.serialization.AnchorDiscriminatorSerializer
 import com.solana.serializers.SolanaResponseDeserializer
+import com.solana.transaction.Message
 import com.solana.transaction.Transaction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -115,6 +116,15 @@ class SolanaRpcClient(
         SimulateTransactionRequest(transaction, commitment, encoding, replaceRecentBlockhash, sigVerify,
             minContextSlot, innerInstructions, accounts, attemptJsonParseAccounts),
         SolanaResponseDeserializer(SimulationResult.serializer())
+    )
+
+    suspend fun getFeeForMessage(
+        message: Message,
+        commitment: Commitment = Commitment.PROCESSED,
+        minContextSlot: Long? = null,
+    ) = makeRequest(
+        GetFeeForMessageRequest(message, commitment, minContextSlot),
+        SolanaResponseDeserializer(ULong.serializer())
     )
 
     suspend fun sendTransaction(

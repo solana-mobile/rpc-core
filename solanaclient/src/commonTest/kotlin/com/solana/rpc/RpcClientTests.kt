@@ -437,10 +437,4 @@ class RpcClientTests {
         assertNotNull(response.result)
         assertTrue { response.result!!.isNotEmpty() }
     }
-
-    private fun buildMemoTransaction(address: SolanaPublicKey, memo: String) =
-        TransactionInstruction(SolanaPublicKey.from("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-            listOf(AccountMeta(address, true, true)),
-            memo.encodeToByteArray()
-        )
 }
