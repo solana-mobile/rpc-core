@@ -5,7 +5,6 @@ import com.funkatronics.kborsh.Borsh
 import com.solana.config.TestConfig
 import com.solana.networking.KtorNetworkDriver
 import com.solana.publickey.SolanaPublicKey
-import com.solana.rpccore.Rpc20Response
 import com.solana.serialization.ByteStringSerializer
 import com.solana.transaction.AccountMeta
 import com.solana.transaction.Message
