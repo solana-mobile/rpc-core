@@ -8,6 +8,8 @@ import com.solana.rpccore.JsonRpc20Request
 import com.solana.transaction.Transaction
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.put
 import kotlin.jvm.JvmStatic
 import kotlin.random.Random
 
@@ -242,6 +244,44 @@ class GetTransactionRequest(
         put("commitment", commitment.serialName())
         put("maxSupportedTransactionVersion", maxSupportedTransactionVersion)
         put("encoding", "jsonParsed")
+    },
+    requestId
+)
+
+class SimulateTransactionRequest(
+    transaction: Transaction,
+    commitment: Commitment? = null,
+    encoding: Encoding = Encoding.BASE64,
+    replaceRecentBlockhash: Boolean? = null,
+    sigVerify: Boolean? = null,
+    minContextSlot: Long? = null,
+    innerInstructions: Boolean? = null,
+    accounts: List<SolanaPublicKey>? = null,
+    attemptJsonParseAccounts: Boolean = false,
+    requestId: String? = null
+) : SolanaRpcRequest(
+    method = "simulateTransaction",
+    params = { add(transaction.serialize().run {
+        when(encoding) {
+            Encoding.BASE64 -> Base64.encodeToString(this)
+            Encoding.BASE58 -> Base58.encodeToString(this)
+        }
+    }) },
+    configuration = {
+        put("commitment", commitment?.serialName())
+        put("encoding", encoding.serialName())
+        put("replaceRecentBlockhash", replaceRecentBlockhash)
+        put("sigVerify", sigVerify)
+        put("minContextSlot", minContextSlot)
+        put("innerInstructions", innerInstructions)
+        accounts?.let {
+            putJsonObject("accounts") {
+                putJsonArray("addresses") {
+                    accounts.forEach { add(it.address) }
+                }
+                put("encoding", if (attemptJsonParseAccounts) "jsonParsed" else "base64")
+            }
+        }
     },
     requestId
 )

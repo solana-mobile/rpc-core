@@ -32,3 +32,15 @@ data class TransactionDetails(
     val transaction: JsonParsedTransaction,
     val version: JsonElement? = null
 )
+
+@Serializable
+data class SimulationResult(
+    val accounts: List<AccountInfo<List<String>>?>? = null,
+    val err: JsonElement? = null,
+    val innerInstructions: JsonObject? = null,
+    val loadedAccountsDataSize: UInt? = null,
+    val logs: List<String>? = null,
+    val replacementBlockhash: BlockhashResponse? = null,
+    val returnData: JsonObject? = null,
+    val unitsConsumed: ULong? = null,
+)

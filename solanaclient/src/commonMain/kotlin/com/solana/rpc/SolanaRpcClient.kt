@@ -101,6 +101,22 @@ class SolanaRpcClient(
         SolanaResponseDeserializer(ListSerializer(SignatureStatus.serializer().nullable))
     )
 
+    suspend fun simulateTransaction(
+        transaction: Transaction,
+        commitment: Commitment? = null,
+        encoding: Encoding = Encoding.BASE64,
+        replaceRecentBlockhash: Boolean? = null,
+        sigVerify: Boolean? = null,
+        minContextSlot: Long? = null,
+        innerInstructions: Boolean? = null,
+        accounts: List<SolanaPublicKey>? = null,
+        attemptJsonParseAccounts: Boolean = false,
+    ) = makeRequest(
+        SimulateTransactionRequest(transaction, commitment, encoding, replaceRecentBlockhash, sigVerify,
+            minContextSlot, innerInstructions, accounts, attemptJsonParseAccounts),
+        SolanaResponseDeserializer(SimulationResult.serializer())
+    )
+
     suspend fun sendTransaction(
         transaction: Transaction,
         options: TransactionOptions = defaultTransactionOptions,
