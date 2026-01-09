@@ -4,7 +4,9 @@ import com.solana.networking.HttpNetworkDriver
 import com.solana.networking.Rpc20Driver
 import com.solana.publickey.SolanaPublicKey
 import com.solana.rpccore.RpcRequest
+import com.solana.serialization.AnchorDiscriminatorSerializer
 import com.solana.serializers.SolanaResponseDeserializer
+import com.solana.transaction.Message
 import com.solana.transaction.Transaction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -116,6 +118,15 @@ class SolanaRpcClient(
         SolanaResponseDeserializer(SimulationResult.serializer())
     )
 
+    suspend fun getFeeForMessage(
+        message: Message,
+        commitment: Commitment = Commitment.PROCESSED,
+        minContextSlot: Long? = null,
+    ) = makeRequest(
+        GetFeeForMessageRequest(message, commitment, minContextSlot),
+        SolanaResponseDeserializer(ULong.serializer())
+    )
+
     suspend fun sendTransaction(
         transaction: Transaction,
         options: TransactionOptions = defaultTransactionOptions,
@@ -162,6 +173,15 @@ class SolanaRpcClient(
             return@withTimeout Result.success(isActive)
         }
 
+    suspend fun getTransaction(
+        transactionSignature: String,
+        commitment: Commitment = Commitment.FINALIZED,
+        maxSupportedTransactionVersion: Long = 0
+    ) = makeRequest(
+        GetTransactionRequest(transactionSignature, commitment, maxSupportedTransactionVersion),
+        TransactionDetails.serializer().nullable
+    )
+
     internal suspend inline fun <T> makeRequest(request: RpcRequest, serializer: DeserializationStrategy<T>) =
         rpcDriver.makeRequest(request, serializer)
 
@@ -188,6 +208,26 @@ suspend inline fun <reified D> SolanaRpcClient.getAccountInfo(
     dataSlice: AccountRequest.DataSlice? = null,
     requestId: String? = null
 ) = getAccountInfo<D>(serializer(), publicKey, commitment, minContextSlot, dataSlice, requestId)
+
+suspend inline fun <reified D> SolanaRpcClient.getAnchorAccountInfo(
+    accountName: String,
+    publicKey: SolanaPublicKey,
+    commitment: Commitment? = null,
+    minContextSlot: Long? = null,
+    dataSlice: AccountRequest.DataSlice? = null,
+    requestId: String? = null
+) = getAccountInfo<D>(
+    AnchorDiscriminatorSerializer(
+        "account",
+        accountName,
+        serializer()
+    ),
+    publicKey,
+    commitment,
+    minContextSlot,
+    dataSlice,
+    requestId
+)
 
 suspend fun <D> SolanaRpcClient.getMultipleAccounts(
     deserializer: KSerializer<D>,
