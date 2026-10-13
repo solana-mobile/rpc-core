@@ -10,7 +10,6 @@ import com.solana.transaction.TransactionInstruction
 import com.solana.transaction.toUnsignedTransaction
 import diglol.crypto.Ed25519
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlin.test.Test
@@ -191,10 +190,4 @@ class SimulateTransactionTests {
         assertNotNull(response.result!!.logs)
         assertNull(response.result!!.err)
     }
-
-    private fun buildMemoTransaction(address: SolanaPublicKey, memo: String) =
-        TransactionInstruction(SolanaPublicKey.from("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
-            listOf(AccountMeta(address, true, true)),
-            memo.encodeToByteArray()
-        )
 }

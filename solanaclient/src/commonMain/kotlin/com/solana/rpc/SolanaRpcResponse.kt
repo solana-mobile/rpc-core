@@ -25,6 +25,15 @@ data class SignatureStatus(
 )
 
 @Serializable
+data class TransactionDetails(
+    val blockTime: Long,
+    val meta: TransactionMetadata,
+    val slot: ULong,
+    val transaction: JsonParsedTransaction,
+    val version: JsonElement? = null
+)
+
+@Serializable
 data class SimulationResult(
     val accounts: List<AccountInfo<List<String>>?>? = null,
     val err: JsonElement? = null,
