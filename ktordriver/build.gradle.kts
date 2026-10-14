@@ -29,7 +29,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(mapOf("path" to ":rpccore")))
+                api(project(mapOf("path" to ":rpccore")))
                 implementation(libs.kotlinx.coroutines.core)
                 api(libs.ktor.client.core)
                 api(libs.ktor.client.cio)
