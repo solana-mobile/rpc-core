@@ -13,7 +13,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(mapOf("path" to ":rpccore")))
+                api(project(mapOf("path" to ":rpccore")))
                 implementation(libs.okhttp)
             }
         }
