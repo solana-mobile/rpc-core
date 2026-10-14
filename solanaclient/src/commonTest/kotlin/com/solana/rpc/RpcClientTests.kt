@@ -25,7 +25,6 @@ class RpcClientTests {
     @Test
     fun `getAccountInfo returns AccountInfo object`() = runTest {
         // given
-        val expectedAccountData = "system_program"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
 
         // when
@@ -36,20 +35,24 @@ class RpcClientTests {
         // then
         assertNull(response.error)
         assertNotNull(response.result)
-        assertEquals(expectedAccountData, response.result!!.data!!.decodeToString())
+        assertEquals(NATIVE_LOADER, response.result!!.owner)
+        // A builtin's account data is its name, which varies by validator version
+        // ("system_program", "solana_system_program").
+        assertTrue(response.result!!.data!!.decodeToString().endsWith("system_program"))
     }
 
     @Test
     fun `getAccountInfo with data slicing returns AccountInfo object with sliced data`() = runTest {
         // given
         val dataSlice = AccountRequest.DataSlice(8, 2)
-        val expectedAccountData = "stem_pro"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+        val expectedAccountData = rpcClient.getAccountInfo(SYSTEM_PROGRAM).result!!.data!!
+            .decodeToString().substring(2, 10)
 
         // when
         val response = rpcClient.getAccountInfo(
             ByteStringSerializer(expectedAccountData.length),
-            SolanaPublicKey.from("11111111111111111111111111111111"),
+            SYSTEM_PROGRAM,
             dataSlice = dataSlice
         )
 
@@ -108,8 +111,8 @@ class RpcClientTests {
     @Test
     fun `getMultipleAccounts returns AccountInfo object`() = runTest {
         // given
-        val expectedAccountData = "system_program"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+        val expectedAccountData = rpcClient.getAccountInfo(SYSTEM_PROGRAM).result!!.data!!.decodeToString()
 
         // when
         val response = rpcClient.getMultipleAccounts(
@@ -149,8 +152,9 @@ class RpcClientTests {
     fun `getMultipleAccounts with data slicing returns AccountInfo object with sliced data`() = runTest {
         // given
         val dataSlice = AccountRequest.DataSlice(8, 2)
-        val expectedAccountData = "stem_pro"
         val rpcClient = SolanaRpcClient(TestConfig.RPC_URL, KtorNetworkDriver())
+        val expectedAccountData = rpcClient.getAccountInfo(SYSTEM_PROGRAM).result!!.data!!
+            .decodeToString().substring(2, 10)
 
         // when
         val response = rpcClient.getMultipleAccounts(
@@ -436,6 +440,11 @@ class RpcClientTests {
         assertNull(response.error)
         assertNotNull(response.result)
         assertTrue { response.result!!.isNotEmpty() }
+    }
+
+    private companion object {
+        val SYSTEM_PROGRAM = SolanaPublicKey.from("11111111111111111111111111111111")
+        val NATIVE_LOADER = SolanaPublicKey.from("NativeLoader1111111111111111111111111111111")
     }
 
     private fun buildMemoTransaction(address: SolanaPublicKey, memo: String) =

@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        solana: ["2.0.0", "stable"]
+        solana: ["3.1.14", "stable"]
 
     steps:
       - name: Checkout
